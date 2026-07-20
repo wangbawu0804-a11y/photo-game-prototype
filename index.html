@@ -90,6 +90,10 @@
   .fin p { color: var(--dim); line-height: 1.7; }
   .note { width: 100%; max-width: 420px; margin-top: 20px; font-size: 11px; color: var(--dim); line-height: 1.6; text-align: center; }
   .hidden { display: none !important; }
+  .widebtn { width: 100%; max-width: 260px; margin: 0 auto; display: block; }
+  .modelist { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; margin: 0 auto; }
+  .modebtn { width: 100%; }
+  .soon { font-size: 11px; color: var(--dim); margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -98,7 +102,24 @@
     <div class="datechip" id="datechip"></div>
   </div>
 
-  <div id="game">
+  <div id="titleScreen" class="fin">
+    <h1>오늘의 찰칵</h1>
+    <p>주제에 맞는 사진을 찍어<br />AI 심판의 판정을 받아보세요</p>
+    <br />
+    <button class="btn-primary widebtn" id="btnStart">시작하기</button>
+  </div>
+
+  <div id="modeScreen" class="fin hidden">
+    <h1 style="font-size: 28px;">모드 선택</h1>
+    <br />
+    <div class="modelist">
+      <button class="btn-primary modebtn" id="btnModeBasic">기본모드</button>
+      <button class="btn-ghost modebtn" disabled>카테고리모드 <span class="soon">준비중</span></button>
+      <button class="btn-ghost modebtn" disabled>타임어택모드 <span class="soon">준비중</span></button>
+    </div>
+  </div>
+
+  <div id="game" class="hidden">
     <div class="counter">
       <div class="counter-num" id="stageNum">01</div>
       <div class="counter-meta">
@@ -218,6 +239,8 @@ const els = {
   btnShoot: $("btnShoot"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   game: $("game"), fin: $("finScreen"),
+  title: $("titleScreen"), modeSel: $("modeScreen"),
+  btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"),
 };
 els.date.textContent = todayKey();
 
@@ -359,7 +382,16 @@ els.btnRetry.onclick = () => {
   render("idle");
 };
 
-render("idle");
+els.btnStart.onclick = () => {
+  els.title.classList.add("hidden");
+  els.modeSel.classList.remove("hidden");
+};
+
+els.btnModeBasic.onclick = () => {
+  els.modeSel.classList.add("hidden");
+  els.game.classList.remove("hidden");
+  render("idle");
+};
 </script>
 </body>
 </html>
