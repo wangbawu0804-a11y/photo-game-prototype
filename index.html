@@ -43,7 +43,13 @@
     width: 100%; max-width: 420px; background: var(--flash); color: var(--ink);
     border-radius: 14px; padding: 18px 20px; margin-bottom: 16px;
   }
-  .themecard .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; opacity: 0.7; }
+  .themecard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .themecard .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; opacity: 0.7; }
+  .progress {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+    background: var(--ink); color: var(--flash); padding: 3px 12px; border-radius: 20px; letter-spacing: 1px;
+  }
+  .progress.clear { color: var(--pass); }
   .themecard h1 { font-family: 'Black Han Sans', sans-serif; font-size: 30px; line-height: 1.2; }
   .frame {
     position: relative; width: 100%; max-width: 420px; aspect-ratio: 4 / 3;
@@ -142,7 +148,7 @@
 
   <div id="catScreen" class="fin hidden">
     <h1 style="font-size: 28px;">카테고리 선택</h1>
-    <p style="font-size: 13px;">고른 장소의 주제 5개가 랜덤으로 나와요</p>
+    <p style="font-size: 13px;">고른 장소의 주제 10개가 랜덤으로 나와요</p>
     <br />
     <div class="modelist">
       <button class="btn-primary modebtn" id="btnCatOffice">회사</button>
@@ -165,7 +171,10 @@
     </div>
 
     <div class="themecard">
-      <div class="eyebrow">지금 찾을 것</div>
+      <div class="themecard-head">
+        <div class="eyebrow">지금 찾을 것</div>
+        <div class="progress hidden" id="progress">0/10</div>
+      </div>
       <h1 id="themeText"></h1>
     </div>
 
@@ -256,7 +265,7 @@ function buildThemesForDifficulty(diff) {
 }
 
 // ─── 카테고리 모드 주제 (쉬운 것 + 어려운 것 섞음) ───
-const CAT_STAGE_COUNT = 5;
+const CAT_STAGE_COUNT = 10;
 const CATEGORIES = {
   office: { label: "회사", pool: ["키보드", "모니터", "마우스", "포스트잇", "텀블러나 머그컵", "케이블이 얽힌 모습", "화면에 반사된 것", "세 가지 색이 함께 있는 장면", "글자가 보이는 서류나 라벨", "규칙적으로 반복되는 무늬", "그림자가 진 책상 위"] },
   school: { label: "학교", pool: ["필통", "교과서", "지우개", "실내화", "형광펜", "손글씨가 가득한 필기", "창밖이 보이는 창문", "그림자가 드리운 바닥이나 복도", "둥근 것 세 개", "오래돼 보이는 물건", "파란색과 흰색이 같이 있는 장면"] },
@@ -303,7 +312,7 @@ const $ = (id) => document.getElementById(id);
 const els = {
   date: $("datechip"), stageNum: $("stageNum"), tier: $("tier"), bestNum: $("bestNum"),
   failCount: $("failCount"), failNum: $("failNum"), failLimit: $("failLimit"), failScopeLabel: $("failScopeLabel"),
-  theme: $("themeText"), empty: $("emptyMsg"), img: $("photoImg"),
+  theme: $("themeText"), progress: $("progress"), empty: $("emptyMsg"), img: $("photoImg"),
   judging: $("judgingTxt"), stampPass: $("stampPass"), stampFail: $("stampFail"),
   verdictBox: $("verdictBox"), verdictComment: $("verdictComment"), verdictSeen: $("verdictSeen"),
   file: $("fileInput"), frame: $("frame"), video: $("camVideo"),
@@ -358,6 +367,15 @@ function render(phase) {
   els.tier.textContent = run.tierPrefix + " · " + run.label;
   els.bestNum.textContent = best;
   els.theme.textContent = themes[stage - 1];
+
+  // 진행상황 배지 (카테고리 모드): 통과한 개수 / 전체, 전부 통과하면 CLEAR
+  els.progress.classList.toggle("hidden", !run.showProgress);
+  if (run.showProgress) {
+    const passed = phase === "pass" ? stage : stage - 1;
+    const cleared = passed >= themes.length;
+    els.progress.textContent = cleared ? "CLEAR" : passed + "/" + themes.length;
+    els.progress.classList.toggle("clear", cleared);
+  }
 
   const limit = run.failLimit;
   els.failCount.classList.toggle("hidden", limit === null);
@@ -582,7 +600,7 @@ function startDifficulty(diff) {
 function startCategory(cat) {
   startRun({
     tierPrefix: "카테고리", label: CATEGORIES[cat].label,
-    failLimit: null, failScope: null,
+    failLimit: null, failScope: null, showProgress: true,
     saveKey: null, selectScreen: "cat",
   }, buildThemesForCategory(cat));
 }
