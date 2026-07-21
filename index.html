@@ -108,6 +108,11 @@
   .modelist { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 340px; margin: 0 auto; }
   .modebtn { width: 100%; }
   .soon { font-size: 11px; color: var(--dim); margin-left: 6px; }
+  .clearbadge {
+    display: inline-block; margin-left: 8px; vertical-align: middle;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    background: var(--pass); color: var(--ink); padding: 2px 8px; border-radius: 10px;
+  }
 </style>
 </head>
 <body>
@@ -151,11 +156,11 @@
     <p style="font-size: 13px;">고른 장소의 주제 10개가 랜덤으로 나와요</p>
     <br />
     <div class="modelist">
-      <button class="btn-primary modebtn" id="btnCatOffice">회사</button>
-      <button class="btn-primary modebtn" id="btnCatSchool">학교</button>
-      <button class="btn-primary modebtn" id="btnCatHome">집</button>
-      <button class="btn-primary modebtn" id="btnCatCafe">카페</button>
-      <button class="btn-primary modebtn" id="btnCatStreet">길거리</button>
+      <button class="btn-primary modebtn" id="btnCatOffice">회사<span class="clearbadge hidden">CLEAR</span></button>
+      <button class="btn-primary modebtn" id="btnCatSchool">학교<span class="clearbadge hidden">CLEAR</span></button>
+      <button class="btn-primary modebtn" id="btnCatHome">집<span class="clearbadge hidden">CLEAR</span></button>
+      <button class="btn-primary modebtn" id="btnCatCafe">카페<span class="clearbadge hidden">CLEAR</span></button>
+      <button class="btn-primary modebtn" id="btnCatStreet">길거리<span class="clearbadge hidden">CLEAR</span></button>
     </div>
   </div>
 
@@ -282,6 +287,27 @@ function buildThemesForCategory(cat) {
   return seededShuffle(CATEGORIES[cat].pool, rand).slice(0, CAT_STAGE_COUNT);
 }
 
+// ─── 클리어한 카테고리 영구 저장 (날짜 무관) ───
+const CLEARED_KEY = "chalkak_cat_cleared";
+const CAT_BTNS = { office: "btnCatOffice", school: "btnCatSchool", home: "btnCatHome", cafe: "btnCatCafe", street: "btnCatStreet" };
+
+function loadClearedCats() {
+  try { return JSON.parse(localStorage.getItem(CLEARED_KEY) || "{}") || {}; }
+  catch (e) { return {}; }
+}
+function markCatCleared(cat) {
+  const cleared = loadClearedCats();
+  if (cleared[cat]) return;
+  cleared[cat] = true;
+  try { localStorage.setItem(CLEARED_KEY, JSON.stringify(cleared)); } catch (e) {}
+}
+function renderCatBadges() {
+  const cleared = loadClearedCats();
+  Object.keys(CAT_BTNS).forEach((cat) => {
+    els[CAT_BTNS[cat]].querySelector(".clearbadge").classList.toggle("hidden", !cleared[cat]);
+  });
+}
+
 // ─── 상태 ───
 // run: 현재 판 설정 { tierPrefix, label, failLimit, failScope, saveKey, selectScreen }
 let run = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0;
@@ -336,6 +362,7 @@ function showScreen(name) {
   $(SCREENS[name]).classList.remove("hidden");
   currentScreen = name;
   els.btnBack.classList.toggle("hidden", name === "title");
+  if (name === "cat") renderCatBadges();
 }
 
 function goBack() {
@@ -360,6 +387,7 @@ function showButtons(...ids) {
 
 function render(phase) {
   if (stage > themes.length) {
+    if (run.catId) markCatCleared(run.catId);
     showScreen("fin");
     return;
   }
@@ -600,7 +628,7 @@ function startDifficulty(diff) {
 function startCategory(cat) {
   startRun({
     tierPrefix: "카테고리", label: CATEGORIES[cat].label,
-    failLimit: null, failScope: null, showProgress: true,
+    failLimit: null, failScope: null, showProgress: true, catId: cat,
     saveKey: null, selectScreen: "cat",
   }, buildThemesForCategory(cat));
 }
