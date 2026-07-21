@@ -119,6 +119,16 @@
     </div>
   </div>
 
+  <div id="diffScreen" class="fin hidden">
+    <h1 style="font-size: 28px;">난이도 선택</h1>
+    <br />
+    <div class="modelist">
+      <button class="btn-primary modebtn" id="btnDiffEasy">쉬움</button>
+      <button class="btn-primary modebtn" id="btnDiffMedium">보통</button>
+      <button class="btn-primary modebtn" id="btnDiffHard">어려움</button>
+    </div>
+  </div>
+
   <div id="game" class="hidden">
     <div class="counter">
       <div class="counter-num" id="stageNum">01</div>
@@ -174,7 +184,7 @@
 // ─── 일일 주제 (날짜 시드) ───
 const EASY = ["숟가락", "빨간색 물건", "신발", "컵", "책", "리모컨", "충전 케이블", "베개", "시계", "열쇠"];
 const MEDIUM = ["동그란 것 두 개", "식물 (진짜 살아있는)", "손글씨가 적힌 것", "거울에 비친 자기 손", "노란색과 파란색이 같이 있는 장면", "바퀴 달린 물건", "유리로 된 것", "음식 (포장 안 뜯은 것 제외)"];
-const HARD = ["하늘이 보이는 창문", "세 가지 다른 질감이 한 장에", "그림자가 주인공인 사진", "글자 'ㅇ'이 들어간 간판이나 라벨", "움직이는 것을 찍은 사진", "10년은 넘어 보이는 물건"];
+const HARD = ["하늘이 보이는 창문", "세 가지 다른 질감이 한 장에", "그림자가 주인공인 사진", "글자 'ㅇ'이 들어간 간판이나 라벨", "움직이는 것을 찍은 사진", "10년은 넘어 보이는 물건", "이름이 영어로 적힌 물건"];
 
 function mulberry32(seed) {
   return function () {
@@ -196,35 +206,40 @@ function todayKey() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
-function buildDailyThemes() {
-  const key = todayKey();
+const STAGE_COUNT = 7;
+const DIFFS = {
+  easy: { label: "쉬움", pool: EASY },
+  medium: { label: "보통", pool: MEDIUM },
+  hard: { label: "어려움", pool: HARD },
+};
+
+function buildThemesForDifficulty(diff) {
+  const key = todayKey() + diff;
   let seed = 0;
   for (const c of key) seed = (seed * 31 + c.charCodeAt(0)) | 0;
   const rand = mulberry32(seed);
-  return [
-    "라면", // 테스트용 고정 주제 — 확인 후 이 줄만 지우면 원래대로
-    ...seededShuffle(EASY, rand),
-    ...seededShuffle(MEDIUM, rand),
-    ...seededShuffle(HARD, rand),
-  ];
+  return seededShuffle(DIFFS[diff].pool, rand).slice(0, STAGE_COUNT);
 }
 
 // ─── 상태 ───
-const themes = buildDailyThemes();
-let stage = 1, best = 0, photoB64 = null;
+let difficulty = null, themes = [], stage = 1, best = 0, photoB64 = null;
 
-// 오늘 기록 복원 (자정 지나면 자동 리셋)
-try {
-  const saved = JSON.parse(localStorage.getItem("chalkak") || "null");
-  if (saved && saved.date === todayKey()) {
-    stage = Math.min(saved.stage || 1, themes.length + 1);
-    best = saved.best || 0;
-  }
-} catch (e) {}
+// 오늘 기록 복원 (자정 지나면 자동 리셋, 난이도별로 따로 저장)
+function loadProgress(diff) {
+  stage = 1;
+  best = 0;
+  try {
+    const saved = JSON.parse(localStorage.getItem("chalkak_" + diff) || "null");
+    if (saved && saved.date === todayKey()) {
+      stage = Math.min(saved.stage || 1, themes.length + 1);
+      best = saved.best || 0;
+    }
+  } catch (e) {}
+}
 
 function saveProgress() {
   try {
-    localStorage.setItem("chalkak", JSON.stringify({ date: todayKey(), stage, best }));
+    localStorage.setItem("chalkak_" + difficulty, JSON.stringify({ date: todayKey(), stage, best }));
   } catch (e) {}
 }
 
@@ -241,14 +256,10 @@ const els = {
   game: $("game"), fin: $("finScreen"),
   title: $("titleScreen"), modeSel: $("modeScreen"),
   btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"),
+  diffSel: $("diffScreen"), btnDiffEasy: $("btnDiffEasy"),
+  btnDiffMedium: $("btnDiffMedium"), btnDiffHard: $("btnDiffHard"),
 };
 els.date.textContent = todayKey();
-
-function tierName() {
-  if (stage <= 1 + EASY.length) return "쉬움";
-  if (stage <= 1 + EASY.length + MEDIUM.length) return "보통";
-  return "어려움";
-}
 
 function showButtons(...ids) {
   ["btnShoot", "btnRetake", "btnSubmit", "btnNext", "btnRetry"].forEach((k) => {
@@ -263,7 +274,7 @@ function render(phase) {
     return;
   }
   els.stageNum.textContent = String(stage).padStart(2, "0");
-  els.tier.textContent = "난이도 · " + tierName();
+  els.tier.textContent = "난이도 · " + DIFFS[difficulty].label;
   els.bestNum.textContent = best;
   els.theme.textContent = themes[stage - 1];
 
@@ -389,9 +400,22 @@ els.btnStart.onclick = () => {
 
 els.btnModeBasic.onclick = () => {
   els.modeSel.classList.add("hidden");
+  els.diffSel.classList.remove("hidden");
+};
+
+function startDifficulty(diff) {
+  difficulty = diff;
+  themes = buildThemesForDifficulty(diff);
+  loadProgress(diff);
+  els.diffSel.classList.add("hidden");
+  els.fin.classList.add("hidden");
   els.game.classList.remove("hidden");
   render("idle");
-};
+}
+
+els.btnDiffEasy.onclick = () => startDifficulty("easy");
+els.btnDiffMedium.onclick = () => startDifficulty("medium");
+els.btnDiffHard.onclick = () => startDifficulty("hard");
 </script>
 </body>
 </html>
