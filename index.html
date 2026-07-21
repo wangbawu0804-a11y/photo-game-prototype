@@ -374,6 +374,26 @@ const CAT_STYLE = {
 };
 const CAT_NAME = { office: "치즈냥", school: "회색냥", home: "턱시도냥", cafe: "갈색냥", street: "흰냥" };
 const CAT_ORDER = ["office", "school", "home", "cafe", "street"];
+// 카테고리별 소품 (앞모습 위에 얹는 픽셀 [x, y]). 순서대로 위에 덧그림
+const CAT_ACC = {
+  office: [ // 빨간 넥타이
+    { c: "#c0392b", px: [[7,10],[8,10],[7,11],[8,11],[7,12],[8,12],[7,13]] },
+  ],
+  school: [ // 노란 가방끈(대각) + 옆 가방
+    { c: "#f2c14e", px: [[4,10],[5,11],[6,11],[7,12],[8,12]] },
+    { c: "#d99a1f", px: [[2,11],[3,11],[2,12],[3,12]] },
+  ],
+  home: [ // 수면 모자 + 흰 방울
+    { c: "#5b7fb0", px: [[8,1],[9,1],[7,2],[8,2],[9,2],[6,3],[7,3],[8,3],[9,3],[6,4],[7,4],[8,4],[9,4],[10,4]] },
+    { c: "#ffffff", px: [[10,1]] },
+  ],
+  cafe: [ // 초록 앞치마 (몸 색과 대비)
+    { c: "#4f8a6a", px: [[7,10],[5,11],[6,11],[7,11],[8,11],[9,11],[10,11],[5,12],[6,12],[7,12],[8,12],[9,12],[10,12],[6,13],[7,13],[8,13],[9,13]] },
+  ],
+  street: [ // 빨간 목도리
+    { c: "#e0574f", px: [[2,10],[3,10],[4,10],[5,10],[6,10],[7,10],[8,10],[9,10],[10,10],[11,10],[12,10],[13,10],[6,11],[7,11],[6,12],[7,12]] },
+  ],
+};
 const _CBODY = ["                  ","  XX        XX    "," XBBX      XBBX   "," XBPBX    XBPBX   "," XBBBBXXXXBBBBX   ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBNNBBBBBBX  ","XBBBBBBNNBBBBBBX  "," XBBBBBBBBBBBBX   "," XBFFFFFFFFFFBX   "," XBFFFFFFFFFFBX   "," XWWXFFFFFFXWWX   "," XXXXXXXXXXXXXX   ","                  "];
 const _CTAIL = [[15,12],[16,12],[16,11],[17,11],[17,10],[17,9],[16,9],[16,8]];
 const _CEYES = [[4,6],[5,6],[10,6],[11,6]];
@@ -395,10 +415,11 @@ function catSVG(catId, locked) {
   const P = { X: st.X || "#2b2119", B: st.B, F: st.F, W: "#fff3e2", P: "#f3a0a0", N: "#e46a6a", E: "#2b2119" };
   let body = "";
   _CBODY.forEach((rs, y) => [...rs].forEach((ch, x) => { const c = { X: P.X, B: P.B, F: P.F, W: P.W, P: P.P, N: P.N }[ch]; if (c) body += r(x, y, c); }));
+  const acc = (CAT_ACC[catId] || []).map((grp) => grp.px.map(([x, y]) => r(x, y, grp.c)).join("")).join("");
   const to = _CTAIL.map(([x, y]) => `<rect x="${x*C-1}" y="${y*C-1}" width="${C+2}" height="${C+2}" fill="${P.X}"/>`).join("");
   const tf = _CTAIL.map(([x, y]) => r(x, y, P.B)).join("");
   const eyes = `<g class="eyes">${_CEYES.map(([x, y]) => r(x, y, P.E)).join("")}${_CHI.map(([x, y]) => `<rect x="${x*C+3}" y="${y*C+1}" width="3" height="3" fill="#fff"/>`).join("")}</g>`;
-  return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat"><g class="tail">${to}${tf}</g>${body}${eyes}</g></svg>`;
+  return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat"><g class="tail">${to}${tf}</g>${body}${acc}${eyes}</g></svg>`;
 }
 
 // 보상함 화면 렌더 — 획득=컬러 고양이, 미획득=자물쇠 실루엣
