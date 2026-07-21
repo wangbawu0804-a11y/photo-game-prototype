@@ -43,7 +43,7 @@
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; margin-bottom: 16px;
   }
-  .frame img { width: 100%; height: 100%; object-fit: cover; }
+  .frame img, .frame video { width: 100%; height: 100%; object-fit: cover; }
   .frame .empty { color: var(--dim); font-size: 14px; text-align: center; line-height: 1.7; }
   .corner { position: absolute; width: 26px; height: 26px; border-color: var(--flash); border-style: solid; border-width: 0; }
   .corner.tl { top: 10px; left: 10px; border-top-width: 3px; border-left-width: 3px; }
@@ -148,6 +148,7 @@
       <div class="corner tl"></div><div class="corner tr"></div>
       <div class="corner bl"></div><div class="corner br"></div>
       <div class="empty" id="emptyMsg">주제에 맞는 걸 찾아서<br />카메라로 찍어 보세요</div>
+      <video id="camVideo" class="hidden" playsinline autoplay muted></video>
       <img id="photoImg" class="hidden" alt="제출한 사진" />
       <div class="judging-txt hidden" id="judgingTxt">AI 심판 판정 중…</div>
       <div class="stamp pass hidden" id="stampPass">통과</div>
@@ -163,6 +164,7 @@
 
     <div class="btnrow">
       <button class="btn-primary" id="btnShoot">📷 사진 찍기</button>
+      <button class="btn-primary hidden" id="btnCapture">📸 촬영</button>
       <button class="btn-ghost hidden" id="btnRetake">다시 찍기</button>
       <button class="btn-primary hidden" id="btnSubmit">제출하기</button>
       <button class="btn-pass hidden" id="btnNext">다음 단계 →</button>
@@ -250,8 +252,8 @@ const els = {
   theme: $("themeText"), empty: $("emptyMsg"), img: $("photoImg"),
   judging: $("judgingTxt"), stampPass: $("stampPass"), stampFail: $("stampFail"),
   verdictBox: $("verdictBox"), verdictComment: $("verdictComment"), verdictSeen: $("verdictSeen"),
-  file: $("fileInput"), frame: $("frame"),
-  btnShoot: $("btnShoot"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
+  file: $("fileInput"), frame: $("frame"), video: $("camVideo"),
+  btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   game: $("game"), fin: $("finScreen"),
   title: $("titleScreen"), modeSel: $("modeScreen"),
@@ -262,7 +264,7 @@ const els = {
 els.date.textContent = todayKey();
 
 function showButtons(...ids) {
-  ["btnShoot", "btnRetake", "btnSubmit", "btnNext", "btnRetry"].forEach((k) => {
+  ["btnShoot", "btnCapture", "btnRetake", "btnSubmit", "btnNext", "btnRetry"].forEach((k) => {
     els[k].classList.toggle("hidden", !ids.includes(k));
   });
 }
@@ -284,10 +286,20 @@ function render(phase) {
 
   if (phase === "idle") {
     els.img.classList.add("hidden");
+    els.video.classList.add("hidden");
     els.empty.classList.remove("hidden");
     els.verdictBox.classList.add("hidden");
     showButtons("btnShoot");
+  } else if (phase === "camera") {
+    els.img.classList.add("hidden");
+    els.video.classList.remove("hidden");
+    els.empty.classList.add("hidden");
+    els.verdictBox.classList.add("hidden");
+    showButtons("btnCapture", "btnRetry");
   } else if (phase === "preview") {
+    els.video.classList.add("hidden");
+    els.img.classList.remove("hidden");
+    els.empty.classList.add("hidden");
     showButtons("btnRetake", "btnSubmit");
   } else if (phase === "judging") {
     showButtons();
@@ -334,9 +346,58 @@ function resizeImage(file, maxSide) {
   });
 }
 
+// ─── 카메라(웹캠) ───
+let camStream = null;
+
+function stopCamera() {
+  if (camStream) {
+    camStream.getTracks().forEach((t) => t.stop());
+    camStream = null;
+  }
+  els.video.srcObject = null;
+}
+
+// 웹캠 있으면 실시간 캡처, 없으면(권한 거부·미지원 등) 파일 선택으로 폴백
+async function startShoot() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    els.file.click();
+    return;
+  }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }, audio: false,
+    });
+    els.video.srcObject = camStream;
+    render("camera");
+  } catch (err) {
+    els.file.click();
+  }
+}
+
+function captureFromVideo() {
+  const vw = els.video.videoWidth, vh = els.video.videoHeight;
+  if (!vw || !vh) return null;
+  const maxSide = 900;
+  const scale = Math.min(1, maxSide / Math.max(vw, vh));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(vw * scale);
+  canvas.height = Math.round(vh * scale);
+  canvas.getContext("2d").drawImage(els.video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
+}
+
 // ─── 이벤트 ───
-els.btnShoot.onclick = () => els.file.click();
-els.btnRetake.onclick = () => els.file.click();
+els.btnShoot.onclick = startShoot;
+els.btnRetake.onclick = startShoot;
+
+els.btnCapture.onclick = () => {
+  const b64 = captureFromVideo();
+  if (!b64) return;
+  photoB64 = b64;
+  stopCamera();
+  els.img.src = "data:image/jpeg;base64," + photoB64;
+  render("preview");
+};
 
 els.file.onchange = async (e) => {
   const file = e.target.files && e.target.files[0];
@@ -345,9 +406,6 @@ els.file.onchange = async (e) => {
   try {
     photoB64 = await resizeImage(file, 900);
     els.img.src = "data:image/jpeg;base64," + photoB64;
-    els.img.classList.remove("hidden");
-    els.empty.classList.add("hidden");
-    els.verdictBox.classList.add("hidden");
     render("preview");
   } catch (err) {
     showVerdict("사진을 불러오지 못했어요.", "카메라로 직접 찍거나 JPEG 사진으로 다시 시도해 주세요.");
@@ -390,6 +448,7 @@ els.btnNext.onclick = () => {
 
 els.btnRetry.onclick = () => {
   photoB64 = null;
+  stopCamera();
   render("idle");
 };
 
