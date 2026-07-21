@@ -17,7 +17,12 @@
     display: flex; flex-direction: column; align-items: center;
     padding: 20px 16px 40px;
   }
-  .topbar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .topbar { width: 100%; max-width: 420px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .backbtn {
+    flex: 0 0 auto; width: auto; padding: 6px 12px; font-size: 13px; font-weight: 500;
+    border-radius: 8px; background: #2A2F3B; color: var(--paper);
+  }
   .logo { font-family: 'Black Han Sans', sans-serif; font-size: 22px; letter-spacing: 0.5px; color: var(--flash); }
   .datechip { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--dim); }
   .counter { width: 100%; max-width: 420px; display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
@@ -98,7 +103,10 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="logo">오늘의 찰칵</div>
+    <div class="topbar-left">
+      <button class="backbtn hidden" id="btnBack">← 뒤로</button>
+      <div class="logo">오늘의 찰칵</div>
+    </div>
     <div class="datechip" id="datechip"></div>
   </div>
 
@@ -262,14 +270,38 @@ const els = {
   file: $("fileInput"), frame: $("frame"), video: $("camVideo"),
   btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
-  game: $("game"), fin: $("finScreen"),
-  failEnd: $("failScreen"), failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
-  title: $("titleScreen"), modeSel: $("modeScreen"),
+  failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
   btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"),
   diffSel: $("diffScreen"), btnDiffEasy: $("btnDiffEasy"),
   btnDiffMedium: $("btnDiffMedium"), btnDiffHard: $("btnDiffHard"),
+  btnBack: $("btnBack"),
 };
 els.date.textContent = todayKey();
+
+// ─── 화면 전환 ───
+const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", game: "game", fin: "finScreen", fail: "failScreen" };
+let currentScreen = "title";
+
+function showScreen(name) {
+  Object.values(SCREENS).forEach((id) => $(id).classList.add("hidden"));
+  $(SCREENS[name]).classList.remove("hidden");
+  currentScreen = name;
+  els.btnBack.classList.toggle("hidden", name === "title");
+}
+
+function goBack() {
+  if (currentScreen === "mode") {
+    showScreen("title");
+  } else if (currentScreen === "diff") {
+    showScreen("mode");
+  } else if (currentScreen === "game") {
+    stopCamera();
+    showScreen("diff");
+  } else if (currentScreen === "fin" || currentScreen === "fail") {
+    showScreen("diff");
+  }
+}
+els.btnBack.onclick = goBack;
 
 function showButtons(...ids) {
   ["btnShoot", "btnCapture", "btnRetake", "btnSubmit", "btnNext", "btnRetry"].forEach((k) => {
@@ -279,8 +311,7 @@ function showButtons(...ids) {
 
 function render(phase) {
   if (stage > themes.length) {
-    els.game.classList.add("hidden");
-    els.fin.classList.remove("hidden");
+    showScreen("fin");
     return;
   }
   els.stageNum.textContent = String(stage).padStart(2, "0");
@@ -462,8 +493,7 @@ function endGameOver() {
     " · " + limit + "번 실패로 종료)";
   stopCamera();
   photoB64 = null;
-  els.game.classList.add("hidden");
-  els.failEnd.classList.remove("hidden");
+  showScreen("fail");
 }
 
 els.btnNext.onclick = () => {
@@ -480,25 +510,16 @@ els.btnRetry.onclick = () => {
   render("idle");
 };
 
-els.btnStart.onclick = () => {
-  els.title.classList.add("hidden");
-  els.modeSel.classList.remove("hidden");
-};
+els.btnStart.onclick = () => showScreen("mode");
 
-els.btnModeBasic.onclick = () => {
-  els.modeSel.classList.add("hidden");
-  els.diffSel.classList.remove("hidden");
-};
+els.btnModeBasic.onclick = () => showScreen("diff");
 
 function startDifficulty(diff) {
   difficulty = diff;
   themes = buildThemesForDifficulty(diff);
   loadProgress(diff);
   fails = 0;
-  els.diffSel.classList.add("hidden");
-  els.fin.classList.add("hidden");
-  els.failEnd.classList.add("hidden");
-  els.game.classList.remove("hidden");
+  showScreen("game");
   render("idle");
 }
 
@@ -506,10 +527,7 @@ els.btnDiffEasy.onclick = () => startDifficulty("easy");
 els.btnDiffMedium.onclick = () => startDifficulty("medium");
 els.btnDiffHard.onclick = () => startDifficulty("hard");
 
-els.btnFailBack.onclick = () => {
-  els.failEnd.classList.add("hidden");
-  els.diffSel.classList.remove("hidden");
-};
+els.btnFailBack.onclick = () => showScreen("diff");
 </script>
 </body>
 </html>
