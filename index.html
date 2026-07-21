@@ -113,6 +113,22 @@
     font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px;
     background: var(--pass); color: var(--ink); padding: 2px 8px; border-radius: 10px;
   }
+  /* 도트 고양이 보상 */
+  .cat-svg { image-rendering: pixelated; overflow: visible; display: block; margin: 0 auto; }
+  .cat-anim .cat { animation: catbob 0.7s steps(2) infinite alternate; transform-origin: center bottom; }
+  @keyframes catbob { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+  .cat-anim .tail { animation: catwag 0.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
+  @keyframes catwag { from { transform: rotate(-10deg); } to { transform: rotate(14deg); } }
+  .cat-anim .eyes { animation: catblink 3.4s infinite; transform-box: fill-box; transform-origin: center; }
+  @keyframes catblink { 0%,90%,100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+  @media (prefers-reduced-motion: reduce) { .cat-anim .cat, .cat-anim .tail, .cat-anim .eyes { animation: none; } }
+  .catgrid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 372px; margin: 0 auto; }
+  .catslot { background: #1E222C; border: 1px solid #2A2F3B; border-radius: 12px; padding: 10px 6px 8px; width: 110px; }
+  .catslot .cat-svg { width: 80px; height: 80px; }
+  .catslot .cname { font-size: 12px; margin-top: 6px; color: var(--paper); }
+  .catslot .clocked { font-size: 11px; color: var(--dim); margin-top: 6px; }
+  #finCat .cat-svg { width: 150px; height: 150px; }
+  #finCatName { font-family: 'Black Han Sans', sans-serif; color: var(--flash); font-size: 22px; margin: 6px 0 16px; }
 </style>
 </head>
 <body>
@@ -129,6 +145,7 @@
     <p>주제에 맞는 사진을 찍어<br />AI 심판의 판정을 받아보세요</p>
     <br />
     <button class="btn-primary widebtn" id="btnStart">시작하기</button>
+    <button class="btn-ghost widebtn" id="btnCollection" style="margin-top: 12px;">🐾 고양이 보상함</button>
   </div>
 
   <div id="modeScreen" class="fin hidden">
@@ -227,8 +244,23 @@
   </div>
 
   <div id="finScreen" class="fin hidden">
-    <h1>ALL CLEAR!</h1>
-    <p>오늘의 모든 단계를 통과했어요.<br />내일 자정에 새로운 주제가 열립니다.</p>
+    <div id="finReward" class="hidden cat-anim">
+      <h1 id="finTitle">새 친구 획득!</h1>
+      <div id="finCat"></div>
+      <div id="finCatName"></div>
+      <button class="btn-primary widebtn" id="btnFinCollection">🐾 보상함 보기</button>
+    </div>
+    <div id="finDefault">
+      <h1>ALL CLEAR!</h1>
+      <p>모든 단계를 통과했어요.</p>
+    </div>
+  </div>
+
+  <div id="collectionScreen" class="fin hidden">
+    <h1 style="font-size: 26px;">🐾 고양이 보상함</h1>
+    <p style="font-size: 13px;">카테고리 어려움을 클리어하면<br />고양이 친구를 얻어요</p>
+    <br />
+    <div class="catgrid" id="catGrid"></div>
   </div>
 
   <div id="failScreen" class="fin hidden">
@@ -319,9 +351,10 @@ function loadClearedCats() {
 }
 function markCatCleared(clearKey) {
   const cleared = loadClearedCats();
-  if (cleared[clearKey]) return;
+  if (cleared[clearKey]) return false;
   cleared[clearKey] = true;
   try { localStorage.setItem(CLEARED_KEY, JSON.stringify(cleared)); } catch (e) {}
+  return true;
 }
 // 난이도 선택 화면: 선택한 카테고리의 쉬움/어려움 CLEAR 뱃지 갱신
 function renderCatDiffBadges() {
@@ -329,6 +362,68 @@ function renderCatDiffBadges() {
   const cleared = loadClearedCats();
   els.btnCatEasy.querySelector(".clearbadge").classList.toggle("hidden", !cleared[selectedCat + "_easy"]);
   els.btnCatHard.querySelector(".clearbadge").classList.toggle("hidden", !cleared[selectedCat + "_hard"]);
+}
+
+// ─── 도트 고양이 보상 (카테고리별 색만 다름) ───
+const CAT_STYLE = {
+  office: { B: "#f2a65a", F: "#ffd9a8" },
+  school: { B: "#9aa4ad", F: "#dbe1e6" },
+  home:   { B: "#3d3d46", F: "#ffffff" },
+  cafe:   { B: "#b9855c", F: "#f0d3b3" },
+  street: { B: "#efe7db", F: "#ffffff", X: "#6b5d4a" },
+};
+const CAT_NAME = { office: "치즈냥", school: "회색냥", home: "턱시도냥", cafe: "갈색냥", street: "흰냥" };
+const CAT_ORDER = ["office", "school", "home", "cafe", "street"];
+const _CBODY = ["                  ","  XX        XX    "," XBBX      XBBX   "," XBPBX    XBPBX   "," XBBBBXXXXBBBBX   ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBNNBBBBBBX  ","XBBBBBBNNBBBBBBX  "," XBBBBBBBBBBBBX   "," XBFFFFFFFFFFBX   "," XBFFFFFFFFFFBX   "," XWWXFFFFFFXWWX   "," XXXXXXXXXXXXXX   ","                  "];
+const _CTAIL = [[15,12],[16,12],[16,11],[17,11],[17,10],[17,9],[16,9],[16,8]];
+const _CEYES = [[4,6],[5,6],[10,6],[11,6]];
+const _CHI = [[5,6],[11,6]];
+
+// 도트 고양이 SVG 문자열 생성. locked면 어두운 실루엣만
+function catSVG(catId, locked) {
+  const C = 10;
+  const r = (x, y, f) => `<rect x="${x*C}" y="${y*C}" width="${C}" height="${C}" fill="${f}"/>`;
+  if (locked) {
+    const D = "#333846", DX = "#20242e";
+    let s = "";
+    _CBODY.forEach((rs, y) => [...rs].forEach((ch, x) => { if (ch !== " ") s += r(x, y, ch === "X" ? DX : D); }));
+    const to = _CTAIL.map(([x, y]) => `<rect x="${x*C-1}" y="${y*C-1}" width="${C+2}" height="${C+2}" fill="${DX}"/>`).join("");
+    const tf = _CTAIL.map(([x, y]) => r(x, y, D)).join("");
+    return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat">${to}${tf}${s}</g></svg>`;
+  }
+  const st = CAT_STYLE[catId] || {};
+  const P = { X: st.X || "#2b2119", B: st.B, F: st.F, W: "#fff3e2", P: "#f3a0a0", N: "#e46a6a", E: "#2b2119" };
+  let body = "";
+  _CBODY.forEach((rs, y) => [...rs].forEach((ch, x) => { const c = { X: P.X, B: P.B, F: P.F, W: P.W, P: P.P, N: P.N }[ch]; if (c) body += r(x, y, c); }));
+  const to = _CTAIL.map(([x, y]) => `<rect x="${x*C-1}" y="${y*C-1}" width="${C+2}" height="${C+2}" fill="${P.X}"/>`).join("");
+  const tf = _CTAIL.map(([x, y]) => r(x, y, P.B)).join("");
+  const eyes = `<g class="eyes">${_CEYES.map(([x, y]) => r(x, y, P.E)).join("")}${_CHI.map(([x, y]) => `<rect x="${x*C+3}" y="${y*C+1}" width="3" height="3" fill="#fff"/>`).join("")}</g>`;
+  return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat"><g class="tail">${to}${tf}</g>${body}${eyes}</g></svg>`;
+}
+
+// 보상함 화면 렌더 — 획득=컬러 고양이, 미획득=자물쇠 실루엣
+function renderCollection() {
+  const cleared = loadClearedCats();
+  els.catGrid.innerHTML = CAT_ORDER.map((cat) => {
+    const label = CATEGORIES[cat].label;
+    if (cleared[cat + "_hard"]) {
+      return `<div class="catslot cat-anim">${catSVG(cat, false)}<div class="cname">${label} · ${CAT_NAME[cat]}</div></div>`;
+    }
+    return `<div class="catslot">${catSVG(cat, true)}<div class="clocked">🔒 ${label} 어려움</div></div>`;
+  }).join("");
+}
+
+// 클리어 화면 — 어려움 클리어면 고양이 보상, 그 외엔 기본 ALL CLEAR
+function renderFin(clearKey, newly) {
+  const isCat = !!clearKey && clearKey.endsWith("_hard");
+  els.finReward.classList.toggle("hidden", !isCat);
+  els.finDefault.classList.toggle("hidden", isCat);
+  if (isCat) {
+    const cat = clearKey.replace("_hard", "");
+    els.finCat.innerHTML = catSVG(cat, false);
+    els.finTitle.textContent = newly ? "새 친구 획득!" : "다시 만났어요!";
+    els.finCatName.textContent = CATEGORIES[cat].label + " · " + CAT_NAME[cat];
+  }
 }
 
 // ─── 상태 ───
@@ -373,12 +468,15 @@ const els = {
   btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
   btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
   catDiffTitle: $("catDiffTitle"), btnCatEasy: $("btnCatEasy"), btnCatHard: $("btnCatHard"),
+  btnCollection: $("btnCollection"), btnFinCollection: $("btnFinCollection"),
+  finReward: $("finReward"), finDefault: $("finDefault"), finTitle: $("finTitle"),
+  finCat: $("finCat"), finCatName: $("finCatName"), catGrid: $("catGrid"),
   btnBack: $("btnBack"),
 };
 els.date.textContent = todayKey();
 
 // ─── 화면 전환 ───
-const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen" };
+const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
 let currentScreen = "title";
 
 function showScreen(name) {
@@ -387,6 +485,7 @@ function showScreen(name) {
   currentScreen = name;
   els.btnBack.classList.toggle("hidden", name === "title");
   if (name === "catdiff") renderCatDiffBadges();
+  if (name === "collection") renderCollection();
 }
 
 function goBack() {
@@ -396,6 +495,8 @@ function goBack() {
     showScreen("mode");
   } else if (currentScreen === "catdiff") {
     showScreen("cat");
+  } else if (currentScreen === "collection") {
+    showScreen("title");
   } else if (currentScreen === "game") {
     stopCamera();
     showScreen(run.selectScreen);
@@ -413,7 +514,8 @@ function showButtons(...ids) {
 
 function render(phase) {
   if (stage > themes.length) {
-    if (run.clearKey) markCatCleared(run.clearKey);
+    const newly = run.clearKey ? markCatCleared(run.clearKey) : false;
+    renderFin(run.clearKey, newly);
     showScreen("fin");
     return;
   }
@@ -630,6 +732,8 @@ els.btnRetry.onclick = () => {
 };
 
 els.btnStart.onclick = () => showScreen("mode");
+els.btnCollection.onclick = () => showScreen("collection");
+els.btnFinCollection.onclick = () => showScreen("collection");
 
 els.btnModeBasic.onclick = () => showScreen("diff");
 els.btnModeCategory.onclick = () => showScreen("cat");
