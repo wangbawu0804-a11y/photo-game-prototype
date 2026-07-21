@@ -182,6 +182,13 @@
     <p>오늘의 모든 단계를 통과했어요.<br />내일 자정에 새로운 주제가 열립니다.</p>
   </div>
 
+  <div id="failScreen" class="fin hidden">
+    <h1 style="color: var(--fail);">GAME OVER</h1>
+    <p id="failMsg"></p>
+    <br />
+    <button class="btn-primary widebtn" id="btnFailBack">난이도 다시 고르기</button>
+  </div>
+
 <script>
 // ─── 일일 주제 (날짜 시드) ───
 const EASY = ["숟가락", "빨간색 물건", "신발", "컵", "책", "리모컨", "충전 케이블", "베개", "시계", "열쇠"];
@@ -210,9 +217,9 @@ function todayKey() {
 }
 const STAGE_COUNT = 7;
 const DIFFS = {
-  easy: { label: "쉬움", pool: EASY },
-  medium: { label: "보통", pool: MEDIUM },
-  hard: { label: "어려움", pool: HARD },
+  easy: { label: "쉬움", pool: EASY, failLimit: null, failScope: null },
+  medium: { label: "보통", pool: MEDIUM, failLimit: 3, failScope: "stage" },
+  hard: { label: "어려움", pool: HARD, failLimit: 5, failScope: "run" },
 };
 
 function buildThemesForDifficulty(diff) {
@@ -224,7 +231,7 @@ function buildThemesForDifficulty(diff) {
 }
 
 // ─── 상태 ───
-let difficulty = null, themes = [], stage = 1, best = 0, photoB64 = null;
+let difficulty = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0;
 
 // 오늘 기록 복원 (자정 지나면 자동 리셋, 난이도별로 따로 저장)
 function loadProgress(diff) {
@@ -256,6 +263,7 @@ const els = {
   btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   game: $("game"), fin: $("finScreen"),
+  failEnd: $("failScreen"), failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
   title: $("titleScreen"), modeSel: $("modeScreen"),
   btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"),
   diffSel: $("diffScreen"), btnDiffEasy: $("btnDiffEasy"),
@@ -431,6 +439,14 @@ els.btnSubmit.onclick = async () => {
       saveProgress();
       render("pass");
     } else {
+      const limit = DIFFS[difficulty].failLimit;
+      if (limit !== null) {
+        fails += 1;
+        if (fails >= limit) {
+          endGameOver();
+          return;
+        }
+      }
       render("fail");
     }
   } catch (err) {
@@ -439,9 +455,21 @@ els.btnSubmit.onclick = async () => {
   }
 };
 
+function endGameOver() {
+  const limit = DIFFS[difficulty].failLimit;
+  els.failMsg.innerHTML =
+    stage + "단계에서 실패했어요.<br />(" + DIFFS[difficulty].label +
+    " · " + limit + "번 실패로 종료)";
+  stopCamera();
+  photoB64 = null;
+  els.game.classList.add("hidden");
+  els.failEnd.classList.remove("hidden");
+}
+
 els.btnNext.onclick = () => {
   stage += 1;
   photoB64 = null;
+  if (DIFFS[difficulty].failScope === "stage") fails = 0;
   saveProgress();
   render("idle");
 };
@@ -466,8 +494,10 @@ function startDifficulty(diff) {
   difficulty = diff;
   themes = buildThemesForDifficulty(diff);
   loadProgress(diff);
+  fails = 0;
   els.diffSel.classList.add("hidden");
   els.fin.classList.add("hidden");
+  els.failEnd.classList.add("hidden");
   els.game.classList.remove("hidden");
   render("idle");
 }
@@ -475,6 +505,11 @@ function startDifficulty(diff) {
 els.btnDiffEasy.onclick = () => startDifficulty("easy");
 els.btnDiffMedium.onclick = () => startDifficulty("medium");
 els.btnDiffHard.onclick = () => startDifficulty("hard");
+
+els.btnFailBack.onclick = () => {
+  els.failEnd.classList.add("hidden");
+  els.diffSel.classList.remove("hidden");
+};
 </script>
 </body>
 </html>
