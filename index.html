@@ -36,6 +36,8 @@
   .tier { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
   .best { font-size: 12px; color: var(--dim); }
   .best b { color: var(--pass); font-family: 'IBM Plex Mono', monospace; }
+  .fails { font-size: 12px; color: var(--dim); }
+  .fails b { color: var(--fail); font-family: 'IBM Plex Mono', monospace; }
   .themecard {
     width: 100%; max-width: 420px; background: var(--flash); color: var(--ink);
     border-radius: 14px; padding: 18px 20px; margin-bottom: 16px;
@@ -144,6 +146,7 @@
         <div class="counter-label">STAGE</div>
         <div class="tier" id="tier">난이도 · 쉬움</div>
         <div class="best">오늘 최고 기록 <b id="bestNum">0</b>단계</div>
+        <div class="fails hidden" id="failCount">실패 <b id="failNum">0</b> / <span id="failLimit">3</span></div>
       </div>
     </div>
 
@@ -264,6 +267,7 @@ function saveProgress() {
 const $ = (id) => document.getElementById(id);
 const els = {
   date: $("datechip"), stageNum: $("stageNum"), tier: $("tier"), bestNum: $("bestNum"),
+  failCount: $("failCount"), failNum: $("failNum"), failLimit: $("failLimit"),
   theme: $("themeText"), empty: $("emptyMsg"), img: $("photoImg"),
   judging: $("judgingTxt"), stampPass: $("stampPass"), stampFail: $("stampFail"),
   verdictBox: $("verdictBox"), verdictComment: $("verdictComment"), verdictSeen: $("verdictSeen"),
@@ -318,6 +322,13 @@ function render(phase) {
   els.tier.textContent = "난이도 · " + DIFFS[difficulty].label;
   els.bestNum.textContent = best;
   els.theme.textContent = themes[stage - 1];
+
+  const limit = DIFFS[difficulty].failLimit;
+  els.failCount.classList.toggle("hidden", limit === null);
+  if (limit !== null) {
+    els.failNum.textContent = fails;
+    els.failLimit.textContent = limit;
+  }
 
   els.judging.classList.toggle("hidden", phase !== "judging");
   els.stampPass.classList.toggle("hidden", phase !== "pass");
