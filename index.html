@@ -312,7 +312,7 @@ function renderCatBadges() {
 // run: 현재 판 설정 { tierPrefix, label, failLimit, failScope, saveKey, selectScreen }
 let run = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0;
 
-// 오늘 기록 복원 (자정 지나면 자동 리셋). saveKey 없는 모드(카테고리)는 항상 처음부터
+// 오늘 기록 복원 (자정 지나면 자동 리셋). saveKey 없는 모드는 항상 처음부터
 function loadProgress() {
   stage = 1;
   best = 0;
@@ -629,7 +629,7 @@ function startCategory(cat) {
   startRun({
     tierPrefix: "카테고리", label: CATEGORIES[cat].label,
     failLimit: null, failScope: null, showProgress: true, catId: cat,
-    saveKey: null, selectScreen: "cat",
+    saveKey: "chalkak_catprog_" + cat, selectScreen: "cat",
   }, buildThemesForCategory(cat));
 }
 
