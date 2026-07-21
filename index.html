@@ -125,7 +125,7 @@
     <br />
     <div class="modelist">
       <button class="btn-primary modebtn" id="btnModeBasic">기본모드</button>
-      <button class="btn-ghost modebtn" disabled>카테고리모드 <span class="soon">준비중</span></button>
+      <button class="btn-primary modebtn" id="btnModeCategory">카테고리모드</button>
       <button class="btn-ghost modebtn" disabled>타임어택모드 <span class="soon">준비중</span></button>
     </div>
   </div>
@@ -137,6 +137,19 @@
       <button class="btn-primary modebtn" id="btnDiffEasy">쉬움</button>
       <button class="btn-primary modebtn" id="btnDiffMedium">보통</button>
       <button class="btn-primary modebtn" id="btnDiffHard">어려움</button>
+    </div>
+  </div>
+
+  <div id="catScreen" class="fin hidden">
+    <h1 style="font-size: 28px;">카테고리 선택</h1>
+    <p style="font-size: 13px;">고른 장소의 주제 5개가 랜덤으로 나와요</p>
+    <br />
+    <div class="modelist">
+      <button class="btn-primary modebtn" id="btnCatOffice">회사</button>
+      <button class="btn-primary modebtn" id="btnCatSchool">학교</button>
+      <button class="btn-primary modebtn" id="btnCatHome">집</button>
+      <button class="btn-primary modebtn" id="btnCatCafe">카페</button>
+      <button class="btn-primary modebtn" id="btnCatStreet">길거리</button>
     </div>
   </div>
 
@@ -242,15 +255,35 @@ function buildThemesForDifficulty(diff) {
   return seededShuffle(DIFFS[diff].pool, rand).slice(0, STAGE_COUNT);
 }
 
-// ─── 상태 ───
-let difficulty = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0;
+// ─── 카테고리 모드 주제 (쉬운 것 + 어려운 것 섞음) ───
+const CAT_STAGE_COUNT = 5;
+const CATEGORIES = {
+  office: { label: "회사", pool: ["키보드", "모니터", "마우스", "포스트잇", "텀블러나 머그컵", "케이블이 얽힌 모습", "화면에 반사된 것", "세 가지 색이 함께 있는 장면", "글자가 보이는 서류나 라벨", "규칙적으로 반복되는 무늬", "그림자가 진 책상 위"] },
+  school: { label: "학교", pool: ["필통", "교과서", "지우개", "실내화", "형광펜", "손글씨가 가득한 필기", "창밖이 보이는 창문", "그림자가 드리운 바닥이나 복도", "둥근 것 세 개", "오래돼 보이는 물건", "파란색과 흰색이 같이 있는 장면"] },
+  home: { label: "집", pool: ["리모컨", "칫솔", "수건", "슬리퍼", "양말", "진짜 살아있는 식물", "거울에 비친 모습", "빛이 들어오는 창가", "서로 다른 질감 세 가지", "동그란 것과 네모난 것이 함께", "무언가 잔뜩 쌓여 있는 모습"] },
+  cafe: { label: "카페", pool: ["커피잔", "빨대", "냅킨", "메뉴판", "디저트", "음료 위 거품이나 라떼아트", "유리에 맺힌 물방울", "창가로 든 햇빛", "나무 질감이 보이는 것", "김이 올라오는 따뜻한 음료", "글자가 적힌 컵이나 홀더"] },
+  street: { label: "길거리", pool: ["간판", "신호등", "벤치", "표지판", "가로수", "하늘이 보이는 풍경", "바닥에 생긴 그림자", "반사된 유리창이나 웅덩이", "움직이는 것을 담은 사진", "빨간색이 눈에 띄는 장면", "오래돼 보이는 건물이나 물건"] },
+};
 
-// 오늘 기록 복원 (자정 지나면 자동 리셋, 난이도별로 따로 저장)
-function loadProgress(diff) {
+function buildThemesForCategory(cat) {
+  const key = todayKey() + "cat" + cat;
+  let seed = 0;
+  for (const c of key) seed = (seed * 31 + c.charCodeAt(0)) | 0;
+  const rand = mulberry32(seed);
+  return seededShuffle(CATEGORIES[cat].pool, rand).slice(0, CAT_STAGE_COUNT);
+}
+
+// ─── 상태 ───
+// run: 현재 판 설정 { tierPrefix, label, failLimit, failScope, saveKey, selectScreen }
+let run = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0;
+
+// 오늘 기록 복원 (자정 지나면 자동 리셋). saveKey 없는 모드(카테고리)는 항상 처음부터
+function loadProgress() {
   stage = 1;
   best = 0;
+  if (!run.saveKey) return;
   try {
-    const saved = JSON.parse(localStorage.getItem("chalkak_" + diff) || "null");
+    const saved = JSON.parse(localStorage.getItem(run.saveKey) || "null");
     if (saved && saved.date === todayKey()) {
       stage = Math.min(saved.stage || 1, themes.length + 1);
       best = saved.best || 0;
@@ -259,8 +292,9 @@ function loadProgress(diff) {
 }
 
 function saveProgress() {
+  if (!run.saveKey) return;
   try {
-    localStorage.setItem("chalkak_" + difficulty, JSON.stringify({ date: todayKey(), stage, best }));
+    localStorage.setItem(run.saveKey, JSON.stringify({ date: todayKey(), stage, best }));
   } catch (e) {}
 }
 
@@ -276,15 +310,16 @@ const els = {
   btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
-  btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"),
-  diffSel: $("diffScreen"), btnDiffEasy: $("btnDiffEasy"),
-  btnDiffMedium: $("btnDiffMedium"), btnDiffHard: $("btnDiffHard"),
+  btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"), btnModeCategory: $("btnModeCategory"),
+  btnDiffEasy: $("btnDiffEasy"), btnDiffMedium: $("btnDiffMedium"), btnDiffHard: $("btnDiffHard"),
+  btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
+  btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
   btnBack: $("btnBack"),
 };
 els.date.textContent = todayKey();
 
 // ─── 화면 전환 ───
-const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", game: "game", fin: "finScreen", fail: "failScreen" };
+const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", cat: "catScreen", game: "game", fin: "finScreen", fail: "failScreen" };
 let currentScreen = "title";
 
 function showScreen(name) {
@@ -297,13 +332,13 @@ function showScreen(name) {
 function goBack() {
   if (currentScreen === "mode") {
     showScreen("title");
-  } else if (currentScreen === "diff") {
+  } else if (currentScreen === "diff" || currentScreen === "cat") {
     showScreen("mode");
   } else if (currentScreen === "game") {
     stopCamera();
-    showScreen("diff");
+    showScreen(run.selectScreen);
   } else if (currentScreen === "fin" || currentScreen === "fail") {
-    showScreen("diff");
+    showScreen(run.selectScreen);
   }
 }
 els.btnBack.onclick = goBack;
@@ -320,16 +355,16 @@ function render(phase) {
     return;
   }
   els.stageNum.textContent = String(stage).padStart(2, "0");
-  els.tier.textContent = "난이도 · " + DIFFS[difficulty].label;
+  els.tier.textContent = run.tierPrefix + " · " + run.label;
   els.bestNum.textContent = best;
   els.theme.textContent = themes[stage - 1];
 
-  const limit = DIFFS[difficulty].failLimit;
+  const limit = run.failLimit;
   els.failCount.classList.toggle("hidden", limit === null);
   if (limit !== null) {
     els.failNum.textContent = fails;
     els.failLimit.textContent = limit;
-    els.failScopeLabel.textContent = DIFFS[difficulty].failScope === "stage" ? "(단계별)" : "(누적)";
+    els.failScopeLabel.textContent = run.failScope === "stage" ? "(단계별)" : "(누적)";
   }
 
   els.judging.classList.toggle("hidden", phase !== "judging");
@@ -483,7 +518,7 @@ els.btnSubmit.onclick = async () => {
       saveProgress();
       render("pass");
     } else {
-      const limit = DIFFS[difficulty].failLimit;
+      const limit = run.failLimit;
       if (limit !== null) {
         fails += 1;
         if (fails >= limit) {
@@ -500,10 +535,9 @@ els.btnSubmit.onclick = async () => {
 };
 
 function endGameOver() {
-  const limit = DIFFS[difficulty].failLimit;
   els.failMsg.innerHTML =
-    stage + "단계에서 실패했어요.<br />(" + DIFFS[difficulty].label +
-    " · " + limit + "번 실패로 종료)";
+    stage + "단계에서 실패했어요.<br />(" + run.label +
+    " · " + run.failLimit + "번 실패로 종료)";
   stopCamera();
   photoB64 = null;
   showScreen("fail");
@@ -512,7 +546,7 @@ function endGameOver() {
 els.btnNext.onclick = () => {
   stage += 1;
   photoB64 = null;
-  if (DIFFS[difficulty].failScope === "stage") fails = 0;
+  if (run.failScope === "stage") fails = 0;
   saveProgress();
   render("idle");
 };
@@ -526,21 +560,44 @@ els.btnRetry.onclick = () => {
 els.btnStart.onclick = () => showScreen("mode");
 
 els.btnModeBasic.onclick = () => showScreen("diff");
+els.btnModeCategory.onclick = () => showScreen("cat");
 
-function startDifficulty(diff) {
-  difficulty = diff;
-  themes = buildThemesForDifficulty(diff);
-  loadProgress(diff);
+function startRun(cfg, themeList) {
+  run = cfg;
+  themes = themeList;
+  loadProgress();
   fails = 0;
   showScreen("game");
   render("idle");
+}
+
+function startDifficulty(diff) {
+  startRun({
+    tierPrefix: "난이도", label: DIFFS[diff].label,
+    failLimit: DIFFS[diff].failLimit, failScope: DIFFS[diff].failScope,
+    saveKey: "chalkak_" + diff, selectScreen: "diff",
+  }, buildThemesForDifficulty(diff));
+}
+
+function startCategory(cat) {
+  startRun({
+    tierPrefix: "카테고리", label: CATEGORIES[cat].label,
+    failLimit: null, failScope: null,
+    saveKey: null, selectScreen: "cat",
+  }, buildThemesForCategory(cat));
 }
 
 els.btnDiffEasy.onclick = () => startDifficulty("easy");
 els.btnDiffMedium.onclick = () => startDifficulty("medium");
 els.btnDiffHard.onclick = () => startDifficulty("hard");
 
-els.btnFailBack.onclick = () => showScreen("diff");
+els.btnCatOffice.onclick = () => startCategory("office");
+els.btnCatSchool.onclick = () => startCategory("school");
+els.btnCatHome.onclick = () => startCategory("home");
+els.btnCatCafe.onclick = () => startCategory("cafe");
+els.btnCatStreet.onclick = () => startCategory("street");
+
+els.btnFailBack.onclick = () => showScreen(run.selectScreen);
 </script>
 </body>
 </html>
