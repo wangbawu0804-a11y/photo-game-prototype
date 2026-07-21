@@ -115,13 +115,12 @@
   }
   /* 도트 고양이 보상 */
   .cat-svg { image-rendering: pixelated; overflow: visible; display: block; margin: 0 auto; }
-  .cat-anim .cat { animation: catbob 0.7s steps(2) infinite alternate; transform-origin: center bottom; }
-  @keyframes catbob { from { transform: translateY(0); } to { transform: translateY(-7px); } }
-  .cat-anim .tail { animation: catwag 0.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: bottom center; }
-  @keyframes catwag { from { transform: rotate(-10deg); } to { transform: rotate(14deg); } }
-  .cat-anim .eyes { animation: catblink 3.4s infinite; transform-box: fill-box; transform-origin: center; }
-  @keyframes catblink { 0%,90%,100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
-  @media (prefers-reduced-motion: reduce) { .cat-anim .cat, .cat-anim .tail, .cat-anim .eyes { animation: none; } }
+  .petB { opacity: 0; }
+  .cat-anim .petA { animation: petflipA 0.9s steps(1) infinite; }
+  .cat-anim .petB { animation: petflipB 0.9s steps(1) infinite; }
+  @keyframes petflipA { 0%,49.9% { opacity: 1; } 50%,100% { opacity: 0; } }
+  @keyframes petflipB { 0%,49.9% { opacity: 0; } 50%,100% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .cat-anim .petA, .cat-anim .petB { animation: none; } .petB { opacity: 0; } }
   .catgrid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 372px; margin: 0 auto; }
   .catslot { background: #1E222C; border: 1px solid #2A2F3B; border-radius: 12px; padding: 10px 6px 8px; width: 110px; }
   .catslot .cat-svg { width: 80px; height: 80px; }
@@ -395,35 +394,56 @@ const CAT_ACC = {
     { c: "#e0574f", px: [[8,10],[8,9],[7,8]] },
   ],
   street: [ // 빨간 목도리
-    { c: "#e0574f", px: [[2,10],[3,10],[4,10],[5,10],[6,10],[7,10],[8,10],[9,10],[10,10],[11,10],[12,10],[13,10],[6,11],[7,11],[6,12],[7,12]] },
+    { c: "#e0574f", px: [[4,10],[5,10],[6,10],[7,10],[8,10],[9,10],[10,10],[11,10],[5,11],[6,11]] },
   ],
 };
-const _CBODY = ["                  ","  XX        XX    "," XBBX      XBBX   "," XBPBX    XBPBX   "," XBBBBXXXXBBBBX   ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBBBBBBBBBX  ","XBBBBBBNNBBBBBBX  ","XBBBBBBNNBBBBBBX  "," XBBBBBBBBBBBBX   "," XBFFFFFFFFFFBX   "," XBFFFFFFFFFFBX   "," XWWXFFFFFFXWWX   "," XXXXXXXXXXXXXX   ","                  "];
-const _CTAIL = [[15,12],[16,12],[16,11],[17,11],[17,10],[17,9],[16,9],[16,8]];
-const _CEYES = [[4,6],[5,6],[10,6],[11,6]];
-const _CHI = [[5,6],[11,6]];
+// 업로드된 픽셀 펫 스프라이트 (16×16). 머리 공유 + 몸통, 마지막 열에 꼬리 오버레이
+const _PHEAD = [
+  "................",
+  "..KOK......KOK..",
+  ".KOPOK....KOPOK.",
+  "......KOOK......",
+  "....KOOOOOOK....",
+  "..KOOOOOOOOOOK..",
+  ".KOBBOOOOOOBBOK.",
+  ".KOBHOOOOOOHBOK.",
+  ".KOOOOWWWWOOOOK.",
+  "..KOOWWNNWWOOK..",
+];
+const _PBODY = [
+  "...KOWWWWWWOK...",
+  ".KOOOWWWWWWOOOK.",
+  ".KOOOWWWWWWOOOK.",
+  "..KOWWWWWWWWOK..",
+  "...K..K..K..K...",
+  "...O..O..O..O...",
+];
+// 꼬리: 15열(오른쪽 끝)에 rows 9-13 덮어쓰기 (down / up 두 프레임)
+function _petTail(rows, up) {
+  const out = rows.slice();
+  const seq = up ? { 9: "K", 10: "O", 11: "O", 12: "O", 13: "." }
+                 : { 9: ".", 10: ".", 11: "O", 12: "O", 13: "K" };
+  for (const rr in seq) { const y = +rr; out[y] = out[y].substring(0, 15) + seq[rr]; }
+  return out;
+}
+function _petColors(style, locked) {
+  if (locked) return { ".": null, K: "#20242e", O: "#333846", D: "#333846", W: "#3a4150", P: "#333846", B: "#20242e", H: "#3a4150", N: "#20242e" };
+  return { ".": null, K: style.X || "#4a2f1c", O: style.B, D: style.B, W: style.F, P: "#ffc2d1", B: "#241a17", H: "#ffffff", N: "#1a1210" };
+}
+function _petFrame(rows, cm) {
+  const C = 10; let s = "";
+  for (let y = 0; y < 16; y++) { const row = rows[y]; for (let x = 0; x < 16; x++) { const c = cm[row[x]]; if (!c) continue; s += `<rect x="${x*C}" y="${y*C}" width="${C}" height="${C}" fill="${c}"/>`; } }
+  return s;
+}
 
-// 도트 고양이 SVG 문자열 생성. locked면 어두운 실루엣만
+// 보상 펫 SVG. 색은 카테고리별, 소품 덧그림. petA/petB 프레임 전환으로 꼬리 흔들
 function catSVG(catId, locked) {
-  const C = 10;
-  const r = (x, y, f) => `<rect x="${x*C}" y="${y*C}" width="${C}" height="${C}" fill="${f}"/>`;
-  if (locked) {
-    const D = "#333846", DX = "#20242e";
-    let s = "";
-    _CBODY.forEach((rs, y) => [...rs].forEach((ch, x) => { if (ch !== " ") s += r(x, y, ch === "X" ? DX : D); }));
-    const to = _CTAIL.map(([x, y]) => `<rect x="${x*C-1}" y="${y*C-1}" width="${C+2}" height="${C+2}" fill="${DX}"/>`).join("");
-    const tf = _CTAIL.map(([x, y]) => r(x, y, D)).join("");
-    return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat">${to}${tf}${s}</g></svg>`;
-  }
-  const st = CAT_STYLE[catId] || {};
-  const P = { X: st.X || "#2b2119", B: st.B, F: st.F, W: "#fff3e2", P: "#f3a0a0", N: "#e46a6a", E: "#2b2119" };
-  let body = "";
-  _CBODY.forEach((rs, y) => [...rs].forEach((ch, x) => { const c = { X: P.X, B: P.B, F: P.F, W: P.W, P: P.P, N: P.N }[ch]; if (c) body += r(x, y, c); }));
-  const acc = (CAT_ACC[catId] || []).map((grp) => grp.px.map(([x, y]) => r(x, y, grp.c)).join("")).join("");
-  const to = _CTAIL.map(([x, y]) => `<rect x="${x*C-1}" y="${y*C-1}" width="${C+2}" height="${C+2}" fill="${P.X}"/>`).join("");
-  const tf = _CTAIL.map(([x, y]) => r(x, y, P.B)).join("");
-  const eyes = `<g class="eyes">${_CEYES.map(([x, y]) => r(x, y, P.E)).join("")}${_CHI.map(([x, y]) => `<rect x="${x*C+3}" y="${y*C+1}" width="3" height="3" fill="#fff"/>`).join("")}</g>`;
-  return `<svg class="cat-svg" viewBox="0 0 180 160"><g class="cat"><g class="tail">${to}${tf}</g>${body}${acc}${eyes}</g></svg>`;
+  const cm = _petColors(CAT_STYLE[catId] || {}, locked);
+  const base = _PHEAD.concat(_PBODY);
+  const fA = _petFrame(_petTail(base, false), cm);
+  const fB = _petFrame(_petTail(base, true), cm);
+  const acc = locked ? "" : (CAT_ACC[catId] || []).map((grp) => grp.px.map(([x, y]) => `<rect x="${x*10}" y="${y*10}" width="10" height="10" fill="${grp.c}"/>`).join("")).join("");
+  return `<svg class="cat-svg" viewBox="0 0 160 160"><g class="petA">${fA}</g><g class="petB">${fB}</g>${acc}</svg>`;
 }
 
 // 보상함 화면 렌더 — 획득=컬러 고양이, 미획득=자물쇠 실루엣
