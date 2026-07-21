@@ -144,7 +144,7 @@
     <p>주제에 맞는 사진을 찍어<br />AI 심판의 판정을 받아보세요</p>
     <br />
     <button class="btn-primary widebtn" id="btnStart">시작하기</button>
-    <button class="btn-ghost widebtn" id="btnCollection" style="margin-top: 12px;">🐾 고양이 보상함</button>
+    <button class="btn-ghost widebtn" id="btnCollection" style="margin-top: 12px;">🐾 컬렉션</button>
   </div>
 
   <div id="modeScreen" class="fin hidden">
@@ -247,7 +247,7 @@
       <h1 id="finTitle">새 친구 획득!</h1>
       <div id="finCat"></div>
       <div id="finCatName"></div>
-      <button class="btn-primary widebtn" id="btnFinCollection">🐾 보상함 보기</button>
+      <button class="btn-primary widebtn" id="btnFinCollection">🐾 컬렉션 보기</button>
     </div>
     <div id="finDefault">
       <h1>ALL CLEAR!</h1>
@@ -256,8 +256,8 @@
   </div>
 
   <div id="collectionScreen" class="fin hidden">
-    <h1 style="font-size: 26px;">🐾 고양이 보상함</h1>
-    <p style="font-size: 13px;">카테고리 어려움을 클리어하면<br />고양이 친구를 얻어요</p>
+    <h1 style="font-size: 26px;">🐾 컬렉션</h1>
+    <p style="font-size: 13px;">카테고리 어려움을 클리어하면<br />강아지 친구를 얻어요</p>
     <br />
     <div class="catgrid" id="catGrid"></div>
   </div>
@@ -371,13 +371,12 @@ const CAT_STYLE = {
   cafe:   { B: "#b9855c", F: "#f0d3b3" },
   street: { B: "#efe7db", F: "#ffffff", X: "#6b5d4a" },
 };
-const CAT_NAME = { office: "치즈냥", school: "회색냥", home: "턱시도냥", cafe: "갈색냥", street: "흰냥" };
+const CAT_NAME = { office: "치즈멍", school: "회색멍", home: "턱시도멍", cafe: "갈색멍", street: "흰멍" };
 const CAT_ORDER = ["office", "school", "home", "cafe", "street"];
 // 카테고리별 소품 (앞모습 위에 얹는 픽셀 [x, y]). 순서대로 위에 덧그림
 const CAT_ACC = {
-  office: [ // 넥타이 (매듭 + 아래로 퍼지는 날)
-    { c: "#2c3e70", px: [[8,11],[7,12],[8,12],[9,12],[8,13]] },
-    { c: "#4a63a8", px: [[7,10],[8,10]] },
+  office: [ // 안경 (양쪽 렌즈 테 + 브릿지)
+    { c: "#2b2b33", px: [[3,5],[4,5],[2,6],[5,6],[2,7],[5,7],[3,8],[4,8],[11,5],[12,5],[10,6],[13,6],[10,7],[13,7],[11,8],[12,8],[6,6],[7,6],[8,6],[9,6]] },
   ],
   school: [ // 옆에 놓인 빨간 책가방
     { c: "#a83232", px: [[0,10],[1,10],[2,10],[3,10]] },
@@ -388,10 +387,10 @@ const CAT_ACC = {
     { c: "#5b7fb0", px: [[8,1],[9,1],[7,2],[8,2],[9,2],[6,3],[7,3],[8,3],[9,3],[6,4],[7,4],[8,4],[9,4],[10,4]] },
     { c: "#ffffff", px: [[10,1]] },
   ],
-  cafe: [ // 빨대 꽂은 우유컵 (마시는 모습)
-    { c: "#eef2f5", px: [[6,11],[7,11],[8,11],[9,11],[6,12],[7,12],[8,12],[9,12],[6,13],[7,13],[8,13],[9,13]] },
-    { c: "#c7d0d6", px: [[6,11],[9,11],[6,13],[9,13]] },
-    { c: "#e0574f", px: [[8,10],[8,9],[7,8]] },
+  cafe: [ // 옆에 놓인 우유병
+    { c: "#d94f4f", px: [[1,9]] },
+    { c: "#f2f5f7", px: [[1,10],[0,11],[1,11],[2,11],[0,12],[1,12],[2,12],[0,13],[1,13],[2,13]] },
+    { c: "#7fa8d8", px: [[0,12],[1,12],[2,12]] },
   ],
   street: [ // 빨간 목도리
     { c: "#e0574f", px: [[4,10],[5,10],[6,10],[7,10],[8,10],[9,10],[10,10],[11,10],[5,11],[6,11]] },
