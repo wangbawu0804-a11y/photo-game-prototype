@@ -128,39 +128,43 @@
   .catslot .clocked { font-size: 11px; color: var(--dim); margin-top: 6px; }
   #finCat .cat-svg { width: 150px; height: 150px; }
   #finCatName { font-family: 'Black Han Sans', sans-serif; color: var(--flash); font-size: 22px; margin: 6px 0 16px; }
-  /* 타이틀 — 카메라 뷰파인더 */
-  #titleScreen { padding: 6px 0 34px; }
-  .viewfinder {
-    position: relative; width: 100%; max-width: 420px; aspect-ratio: 4 / 3; margin: 0 auto 24px;
-    background: radial-gradient(120% 120% at 50% 35%, #20242f 0%, #0c0e13 100%);
-    border-radius: 6px; overflow: hidden;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  .vf-read { position: absolute; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: 1px; }
-  .vf-read.tl { top: 14px; left: 16px; }
-  .vf-read.tr { top: 14px; right: 16px; }
-  .vf-read.bm { bottom: 14px; left: 0; right: 0; text-align: center; }
-  .vf-read .dot { color: var(--fail); animation: recblink 1.4s steps(1) infinite; }
-  @keyframes recblink { 0%,50% { opacity: 1; } 50.01%,100% { opacity: 0.25; } }
-  .af-box { position: absolute; width: 62%; height: 44%; border: 2px solid rgba(61,220,151,0.55); border-radius: 4px; }
-  .af-box::before { content: 'AF'; position: absolute; top: -15px; left: 0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--pass); letter-spacing: 1px; }
-  .vf-logo { position: relative; z-index: 1; font-family: 'Black Han Sans', sans-serif; font-size: 40px; line-height: 0.98; color: var(--flash); letter-spacing: 1px; text-shadow: 0 2px 0 rgba(0,0,0,0.4); }
-  .vf-sub { position: relative; z-index: 1; margin-top: 12px; font-size: 12px; color: var(--paper); opacity: 0.85; line-height: 1.5; }
-  .shutter {
-    width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 8px; padding: 0; flex: none;
-    background: var(--flash); border: 5px solid #fff; box-shadow: 0 0 0 3px var(--ink), 0 6px 16px rgba(0,0,0,0.4);
-    color: var(--ink); font-family: 'Black Han Sans', sans-serif; font-size: 18px;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    animation: shutterpulse 2.2s ease-in-out infinite;
-  }
-  @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 3px var(--ink), 0 6px 16px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 0 3px var(--ink), 0 0 0 9px rgba(255,211,56,0.18), 0 6px 16px rgba(0,0,0,0.4); } }
-  .shutter:active { transform: scale(0.94); }
-  .shutter-cap { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--dim); letter-spacing: 2px; margin-bottom: 22px; }
-  @media (prefers-reduced-motion: reduce) { .shutter { animation: none; } .vf-read .dot { animation: none; } }
+  /* 타이틀 — 아이폰 카메라 UI */
+  #titleScreen { padding: 0; }
+  .cam { position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; }
+  .cam-island { display: flex; justify-content: center; padding: 9px 0 5px; }
+  .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+  .cam-island .pill .g { width: 9px; height: 9px; border-radius: 50%; background: #37d34a; }
+  .cam-view { position: relative; aspect-ratio: 3 / 4; background: radial-gradient(150% 100% at 62% 28%, #14171d 0%, #000 72%); }
+  .cam-grid .ln { position: absolute; background: rgba(255,255,255,0.16); }
+  .cam-grid .v { top: 0; bottom: 0; width: 1px; } .cam-grid .va { left: 33.33%; } .cam-grid .vb { left: 66.66%; }
+  .cam-grid .h { left: 0; right: 0; height: 1px; } .cam-grid .ha { top: 33.33%; } .cam-grid .hb { top: 66.66%; }
+  .cam-ctrls { position: absolute; top: 14px; right: 12px; display: flex; align-items: center; gap: 15px; background: rgba(30,30,34,0.82); padding: 7px 13px; border-radius: 18px; font-size: 16px; line-height: 1; }
+  .cam-ctrls .moon { display: flex; align-items: center; gap: 2px; background: var(--flash); color: #3a2e00; border-radius: 11px; padding: 2px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; }
+  .cam-ctrls .ic { color: #ececf0; opacity: 0.92; }
+  .cam-reticle { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; }
+  .cam-reticle::before, .cam-reticle::after { content: ''; position: absolute; background: var(--flash); }
+  .cam-reticle::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+  .cam-reticle::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+  .cam-zoom { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; align-items: center; gap: 16px; color: #fff; font-size: 13px; }
+  .cam-zoom .z { opacity: 0.82; }
+  .cam-zoom .z.on { background: rgba(0,0,0,0.5); color: var(--flash); font-weight: 700; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .cam-bottom { background: #000; padding: 14px 0 12px; }
+  .cam-mode { display: flex; justify-content: center; gap: 24px; font-size: 14px; color: #9a9aa2; margin-bottom: 16px; }
+  .cam-mode .on { color: var(--flash); border: 1px solid rgba(255,211,56,0.5); border-radius: 14px; padding: 3px 13px; }
+  .cam-actions { display: flex; align-items: center; justify-content: space-between; padding: 0 26px; }
+  .cam-thumb { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; background: linear-gradient(160deg, #f3eddd 0%, #d9cfb8 100%); border: 1px solid #4a4a52; padding: 0; flex: none; cursor: pointer; }
+  .cam-thumb .cat-svg { width: 100%; height: 100%; }
+  .shutter { width: 74px; height: 74px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; animation: shutterpulse 2.4s ease-in-out infinite; }
+  .shutter::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #fff; }
+  .shutter::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; transition: transform 0.08s; }
+  .shutter:active::after { transform: scale(0.9); }
+  @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0.12); } }
+  .cam-flip { width: 44px; height: 44px; border-radius: 50%; background: #2a2a2e; border: none; color: #fff; font-size: 19px; flex: none; display: flex; align-items: center; justify-content: center; }
+  @media (prefers-reduced-motion: reduce) { .shutter { animation: none; } }
 </style>
 </head>
 <body>
-  <div class="topbar">
+  <div class="topbar hidden" id="topbar">
     <div class="topbar-left">
       <button class="backbtn hidden" id="btnBack">← 뒤로</button>
       <div class="logo">오늘의 찰칵</div>
@@ -169,19 +173,31 @@
   </div>
 
   <div id="titleScreen" class="fin">
-    <div class="viewfinder">
-      <div class="corner tl"></div><div class="corner tr"></div>
-      <div class="corner bl"></div><div class="corner br"></div>
-      <div class="vf-read tl"><span class="dot">●</span> 촬영</div>
-      <div class="vf-read tr">AUTO</div>
-      <div class="af-box"></div>
-      <div class="vf-logo">오늘의<br />찰칵</div>
-      <div class="vf-sub">매일 새로운 주제를 찾아 찍는<br />AI 사진 챌린지</div>
-      <div class="vf-read bm">ISO 400 · 1/125 · F2.8</div>
+    <div class="cam">
+      <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
+      <div class="cam-view">
+        <div class="cam-grid">
+          <span class="ln v va"></span><span class="ln v vb"></span>
+          <span class="ln h ha"></span><span class="ln h hb"></span>
+        </div>
+        <div class="cam-ctrls">
+          <span class="moon">☾5</span>
+          <span class="ic">⚡</span>
+          <span class="ic">◉</span>
+          <span class="ic">▦</span>
+        </div>
+        <div class="cam-reticle"></div>
+        <div class="cam-zoom"><span class="z">.5</span><span class="z on">1×</span><span class="z">2</span></div>
+      </div>
+      <div class="cam-bottom">
+        <div class="cam-mode"><span>비디오</span><span class="on">사진</span></div>
+        <div class="cam-actions">
+          <button class="cam-thumb" id="btnCollection" aria-label="컬렉션 보기"></button>
+          <button class="shutter" id="btnStart" aria-label="시작하기"></button>
+          <button class="cam-flip" type="button" aria-label="전환" disabled>⟳</button>
+        </div>
+      </div>
     </div>
-    <button class="shutter" id="btnStart">시작</button>
-    <div class="shutter-cap">눌러서 촬영 시작</div>
-    <button class="btn-ghost widebtn" id="btnCollection">🐾 컬렉션</button>
   </div>
 
   <div id="modeScreen" class="fin hidden">
@@ -609,6 +625,7 @@ function showScreen(name) {
   $(SCREENS[name]).classList.remove("hidden");
   currentScreen = name;
   els.btnBack.classList.toggle("hidden", name === "title");
+  $("topbar").classList.toggle("hidden", name === "title");
   if (name === "catdiff") renderCatDiffBadges();
   if (name === "collection") renderCollection();
 }
@@ -904,6 +921,9 @@ els.btnCatEasy.onclick = () => startCategory(selectedCat, "easy");
 els.btnCatHard.onclick = () => startCategory(selectedCat, "hard");
 
 els.btnFailBack.onclick = () => showScreen(run.selectScreen);
+
+// 타이틀 갤러리 썸네일에 강아지 스프라이트 표시
+els.btnCollection.innerHTML = catSVG("office", false);
 </script>
 </body>
 </html>
