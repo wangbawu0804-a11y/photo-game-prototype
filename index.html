@@ -130,6 +130,7 @@
   #finCatName { font-family: 'Black Han Sans', sans-serif; color: var(--flash); font-size: 22px; margin: 6px 0 16px; }
   /* 타이틀 — 아이폰 카메라 UI */
   #titleScreen { padding: 0; }
+  #game { width: 100%; max-width: 420px; }
   .cam { position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; }
   .cam-island { display: flex; justify-content: center; padding: 9px 0 5px; }
   .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
@@ -158,6 +159,30 @@
   .shutter:active::after { transform: scale(0.9); }
   @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0.12); } }
   .cam-flip { width: 44px; height: 44px; border-radius: 50%; background: #2a2a2e; border: none; color: #fff; font-size: 19px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .cam-date { position: absolute; top: 14px; left: 16px; z-index: 4; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.72); letter-spacing: 1px; }
+  /* 게임 화면 — 카메라 뷰 */
+  .cam .frame.game-view { max-width: none; width: 100%; aspect-ratio: 3 / 4; border-radius: 0; margin: 0; background: #0b0d12; }
+  .game-top { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding: 42px 18px 26px; text-align: left;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0) 100%); }
+  .gt-row { display: flex; justify-content: space-between; align-items: center; }
+  .gt-stage { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 2px; color: var(--dim); }
+  .gt-stage b { color: var(--flash); font-size: 16px; }
+  .gt-tier { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .gt-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--flash); opacity: 0.85; margin-top: 12px; }
+  .gt-theme { font-family: 'Black Han Sans', sans-serif; font-size: 30px; line-height: 1.15; color: #fff; margin-top: 3px; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+  .gt-meta { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--dim); }
+  .gt-meta .best b { color: var(--pass); font-family: 'IBM Plex Mono', monospace; }
+  .gt-meta .fails b { color: var(--fail); font-family: 'IBM Plex Mono', monospace; }
+  .game-bar { position: relative; display: flex; align-items: center; justify-content: center; min-height: 98px; }
+  .game-bar .btnrow { width: auto; max-width: none; display: flex; gap: 12px; align-items: center; justify-content: center; }
+  .game-bar #gameBack { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); }
+  .shootbtn { width: 78px; height: 78px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; }
+  .shootbtn::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #fff; }
+  .shootbtn::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; transition: transform 0.08s; }
+  .shootbtn:active::after { transform: scale(0.9); }
+  .shootbtn .scap { position: relative; z-index: 2; color: var(--ink); font-family: 'Black Han Sans', sans-serif; font-size: 17px; }
+  .pill { flex: none; padding: 13px 22px; border-radius: 24px; font-size: 15px; }
+  .cam .verdictbox { max-width: none; width: auto; margin: 12px 14px 2px; }
   @media (prefers-reduced-motion: reduce) { .shutter { animation: none; } }
 </style>
 </head>
@@ -174,6 +199,7 @@
     <div class="cam">
       <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
       <div class="cam-view">
+        <div class="cam-date js-date"></div>
         <div class="cam-ctrls">
           <span class="moon">☾5</span>
           <span class="ic">⚡</span>
@@ -230,54 +256,48 @@
   </div>
 
   <div id="game" class="hidden">
-    <div class="counter">
-      <div class="counter-num" id="stageNum">01</div>
-      <div class="counter-meta">
-        <div class="counter-label">STAGE</div>
-        <div class="tier" id="tier">난이도 · 쉬움</div>
-        <div class="best">오늘 최고 기록 <b id="bestNum">0</b>단계</div>
-        <div class="fails hidden" id="failCount">실패 <b id="failNum">0</b> / <span id="failLimit">3</span> <span class="failscope" id="failScopeLabel"></span></div>
+    <div class="cam">
+      <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
+      <div class="frame game-view" id="frame">
+        <div class="cam-date js-date"></div>
+        <div class="game-top">
+          <div class="gt-row">
+            <span class="gt-stage">STAGE <b id="stageNum">01</b></span>
+            <span class="progress hidden" id="progress">0/10</span>
+          </div>
+          <div class="gt-tier" id="tier"></div>
+          <div class="gt-eyebrow">지금 찾을 것</div>
+          <h2 class="gt-theme" id="themeText"></h2>
+          <div class="gt-meta">
+            <span class="best">오늘 최고 <b id="bestNum">0</b></span>
+            <span class="fails hidden" id="failCount">실패 <b id="failNum">0</b>/<span id="failLimit">3</span> <span class="failscope" id="failScopeLabel"></span></span>
+          </div>
+        </div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="empty" id="emptyMsg">주제에 맞는 걸 찾아서<br />셔터를 눌러 보세요</div>
+        <video id="camVideo" class="hidden" playsinline autoplay muted></video>
+        <img id="photoImg" class="hidden" alt="제출한 사진" />
+        <div class="judging-txt hidden" id="judgingTxt">AI 심판 판정 중…</div>
+        <div class="stamp pass hidden" id="stampPass">통과</div>
+        <div class="stamp fail hidden" id="stampFail">탈락</div>
       </div>
-    </div>
-
-    <div class="themecard">
-      <div class="themecard-head">
-        <div class="eyebrow">지금 찾을 것</div>
-        <div class="progress hidden" id="progress">0/10</div>
+      <div class="verdictbox hidden" id="verdictBox">
+        <span id="verdictComment"></span>
+        <div class="seen hidden" id="verdictSeen"></div>
       </div>
-      <h1 id="themeText"></h1>
-    </div>
-
-    <div class="frame" id="frame">
-      <div class="corner tl"></div><div class="corner tr"></div>
-      <div class="corner bl"></div><div class="corner br"></div>
-      <div class="empty" id="emptyMsg">주제에 맞는 걸 찾아서<br />카메라로 찍어 보세요</div>
-      <video id="camVideo" class="hidden" playsinline autoplay muted></video>
-      <img id="photoImg" class="hidden" alt="제출한 사진" />
-      <div class="judging-txt hidden" id="judgingTxt">AI 심판 판정 중…</div>
-      <div class="stamp pass hidden" id="stampPass">통과</div>
-      <div class="stamp fail hidden" id="stampFail">탈락</div>
-    </div>
-
-    <div class="verdictbox hidden" id="verdictBox">
-      <span id="verdictComment"></span>
-      <div class="seen hidden" id="verdictSeen"></div>
-    </div>
-
-    <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" />
-
-    <div class="btnrow">
-      <button class="btn-primary" id="btnShoot">📷 사진 찍기</button>
-      <button class="btn-primary hidden" id="btnCapture">📸 촬영</button>
-      <button class="btn-ghost hidden" id="btnRetake">다시 찍기</button>
-      <button class="btn-primary hidden" id="btnSubmit">제출하기</button>
-      <button class="btn-pass hidden" id="btnNext">다음 단계 →</button>
-      <button class="btn-primary hidden" id="btnRetry">다시 도전</button>
-    </div>
-
-    <div class="note">
-      기록은 이 기기에 저장됩니다. 랭킹·계정은 MVP 단계에서 추가됩니다.<br />
-      주제는 날짜 시드 기반 — 오늘 접속한 모든 사람에게 같은 순서입니다.
+      <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" />
+      <div class="cam-bottom game-bar">
+        <div class="btnrow">
+          <button class="shootbtn" id="btnShoot"><span class="scap">촬영</span></button>
+          <button class="shootbtn hidden" id="btnCapture"><span class="scap">촬영</span></button>
+          <button class="btn-ghost pill hidden" id="btnRetake">다시 찍기</button>
+          <button class="btn-primary pill hidden" id="btnSubmit">제출하기</button>
+          <button class="btn-pass pill hidden" id="btnNext">다음 단계 →</button>
+          <button class="btn-primary pill hidden" id="btnRetry">다시 도전</button>
+        </div>
+        <button class="cam-flip" id="gameBack" type="button" aria-label="뒤로">↩</button>
+      </div>
     </div>
   </div>
 
@@ -611,6 +631,7 @@ const els = {
   btnBack: $("btnBack"),
 };
 els.date.textContent = todayKey();
+document.querySelectorAll(".js-date").forEach((e) => { e.textContent = todayKey(); });
 
 // ─── 화면 전환 ───
 const SCREENS = { title: "titleScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
@@ -621,7 +642,7 @@ function showScreen(name) {
   $(SCREENS[name]).classList.remove("hidden");
   currentScreen = name;
   els.btnBack.classList.toggle("hidden", name === "title");
-  $("topbar").classList.toggle("hidden", name === "title");
+  $("topbar").classList.toggle("hidden", name === "title" || name === "game");
   if (name === "catdiff") renderCatDiffBadges();
   if (name === "collection") renderCollection();
 }
@@ -921,6 +942,7 @@ els.btnCatEasy.onclick = () => startCategory(selectedCat, "easy");
 els.btnCatHard.onclick = () => startCategory(selectedCat, "hard");
 
 els.btnFailBack.onclick = () => showScreen(run.selectScreen);
+$("gameBack").onclick = goBack;
 
 // 타이틀 갤러리 썸네일에 강아지 스프라이트 표시
 els.btnCollection.innerHTML = catSVG("office", false);
