@@ -145,15 +145,16 @@
   .cam-zoom .z { opacity: 0.82; }
   .cam-zoom .z.on { background: rgba(0,0,0,0.5); color: var(--flash); font-weight: 700; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .cam-bottom { background: #000; padding: 14px 0 12px; }
-  .cam-mode { display: flex; justify-content: center; gap: 20px; font-size: 15px; margin-bottom: 16px; }
-  .cam-mode .cmode { color: #9a9aa2; cursor: pointer; padding: 3px 14px; border: 1px solid transparent; border-radius: 14px; user-select: none; }
+  .cam-mode { display: flex; justify-content: center; gap: 20px; font-size: 18px; margin-bottom: 16px; }
+  .cam-mode .cmode { color: #9a9aa2; font-weight: 700; cursor: pointer; padding: 4px 17px; border: 1px solid transparent; border-radius: 15px; user-select: none; }
   .cam-mode .cmode.on { color: var(--flash); border-color: rgba(255,211,56,0.55); }
   .cam-actions { display: flex; align-items: center; justify-content: space-between; padding: 0 26px; }
   .cam-thumb { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; background: linear-gradient(160deg, #f3eddd 0%, #d9cfb8 100%); border: 1px solid #4a4a52; padding: 0; flex: none; cursor: pointer; }
   .cam-thumb .cat-svg { width: 100%; height: 100%; }
-  .shutter { width: 74px; height: 74px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; animation: shutterpulse 2.4s ease-in-out infinite; }
+  .shutter { width: 78px; height: 78px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; animation: shutterpulse 2.4s ease-in-out infinite; }
   .shutter::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #fff; }
   .shutter::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; transition: transform 0.08s; }
+  .shutter .scap { position: relative; z-index: 2; color: var(--ink); font-family: 'Black Han Sans', sans-serif; font-size: 17px; }
   .shutter:active::after { transform: scale(0.9); }
   @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0.12); } }
   .cam-flip { width: 44px; height: 44px; border-radius: 50%; background: #2a2a2e; border: none; color: #fff; font-size: 19px; flex: none; display: flex; align-items: center; justify-content: center; }
@@ -197,7 +198,7 @@
         <div class="cam-mode"><span class="cmode on" id="tabBasic">기본</span><span class="cmode" id="tabCat">주제별</span></div>
         <div class="cam-actions">
           <button class="cam-thumb" id="btnCollection" aria-label="컬렉션 보기"></button>
-          <button class="shutter" id="btnStart" aria-label="시작하기"></button>
+          <button class="shutter" id="btnStart"><span class="scap">시작</span></button>
           <button class="cam-flip" type="button" aria-label="전환" disabled>⟳</button>
         </div>
       </div>
