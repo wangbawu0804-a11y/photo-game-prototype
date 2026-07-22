@@ -145,8 +145,9 @@
   .cam-zoom .z { opacity: 0.82; }
   .cam-zoom .z.on { background: rgba(0,0,0,0.5); color: var(--flash); font-weight: 700; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
   .cam-bottom { background: #000; padding: 14px 0 12px; }
-  .cam-mode { display: flex; justify-content: center; gap: 24px; font-size: 14px; color: #9a9aa2; margin-bottom: 16px; }
-  .cam-mode .on { color: var(--flash); border: 1px solid rgba(255,211,56,0.5); border-radius: 14px; padding: 3px 13px; }
+  .cam-mode { display: flex; justify-content: center; gap: 20px; font-size: 15px; margin-bottom: 16px; }
+  .cam-mode .cmode { color: #9a9aa2; cursor: pointer; padding: 3px 14px; border: 1px solid transparent; border-radius: 14px; user-select: none; }
+  .cam-mode .cmode.on { color: var(--flash); border-color: rgba(255,211,56,0.55); }
   .cam-actions { display: flex; align-items: center; justify-content: space-between; padding: 0 26px; }
   .cam-thumb { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; background: linear-gradient(160deg, #f3eddd 0%, #d9cfb8 100%); border: 1px solid #4a4a52; padding: 0; flex: none; cursor: pointer; }
   .cam-thumb .cat-svg { width: 100%; height: 100%; }
@@ -193,7 +194,7 @@
         <div class="cam-zoom"><span class="z">.5</span><span class="z on">1×</span><span class="z">2</span></div>
       </div>
       <div class="cam-bottom">
-        <div class="cam-mode"><span>비디오</span><span class="on">사진</span></div>
+        <div class="cam-mode"><span class="cmode on" id="tabBasic">기본</span><span class="cmode" id="tabCat">주제별</span></div>
         <div class="cam-actions">
           <button class="cam-thumb" id="btnCollection" aria-label="컬렉션 보기"></button>
           <button class="shutter" id="btnStart" aria-label="시작하기"></button>
@@ -203,15 +204,6 @@
     </div>
   </div>
 
-  <div id="modeScreen" class="fin hidden">
-    <h1 style="font-size: 28px;">모드 선택</h1>
-    <br />
-    <div class="modelist">
-      <button class="btn-primary modebtn" id="btnModeBasic">기본모드</button>
-      <button class="btn-primary modebtn" id="btnModeCategory">카테고리모드</button>
-      <button class="btn-ghost modebtn" disabled>타임어택모드 <span class="soon">준비중</span></button>
-    </div>
-  </div>
 
   <div id="catScreen" class="fin hidden">
     <h1 style="font-size: 28px;">카테고리 선택</h1>
@@ -608,7 +600,7 @@ const els = {
   btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
-  btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"), btnModeCategory: $("btnModeCategory"),
+  btnStart: $("btnStart"), tabBasic: $("tabBasic"), tabCat: $("tabCat"),
   btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
   btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
   catDiffTitle: $("catDiffTitle"), btnCatEasy: $("btnCatEasy"), btnCatHard: $("btnCatHard"),
@@ -620,7 +612,7 @@ const els = {
 els.date.textContent = todayKey();
 
 // ─── 화면 전환 ───
-const SCREENS = { title: "titleScreen", mode: "modeScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
+const SCREENS = { title: "titleScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
 let currentScreen = "title";
 
 function showScreen(name) {
@@ -634,10 +626,8 @@ function showScreen(name) {
 }
 
 function goBack() {
-  if (currentScreen === "mode") {
+  if (currentScreen === "cat") {
     showScreen("title");
-  } else if (currentScreen === "cat") {
-    showScreen("mode");
   } else if (currentScreen === "catdiff") {
     showScreen("cat");
   } else if (currentScreen === "collection") {
@@ -876,12 +866,18 @@ els.btnRetry.onclick = () => {
   render("idle");
 };
 
-els.btnStart.onclick = () => showScreen("mode");
+let selectedMode = "basic";
+function setMode(m) {
+  selectedMode = m;
+  els.tabBasic.classList.toggle("on", m === "basic");
+  els.tabCat.classList.toggle("on", m === "cat");
+}
+els.tabBasic.onclick = () => setMode("basic");
+els.tabCat.onclick = () => setMode("cat");
+els.btnStart.onclick = () => { if (selectedMode === "cat") showScreen("cat"); else startBasic(); };
 els.btnCollection.onclick = () => showScreen("collection");
 els.btnFinCollection.onclick = () => showScreen("collection");
 
-els.btnModeBasic.onclick = () => startBasic();
-els.btnModeCategory.onclick = () => showScreen("cat");
 
 function startRun(cfg, themeList) {
   run = cfg;
@@ -896,7 +892,7 @@ function startBasic() {
   startRun({
     tierPrefix: "기본", label: "오늘의 랜덤",
     failLimit: null, failScope: null, showProgress: true,
-    saveKey: "chalkak_basic", selectScreen: "mode",
+    saveKey: "chalkak_basic", selectScreen: "title",
   }, buildBasicThemes());
 }
 
