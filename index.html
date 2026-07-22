@@ -157,16 +157,6 @@
     </div>
   </div>
 
-  <div id="diffScreen" class="fin hidden">
-    <h1 style="font-size: 28px;">난이도 선택</h1>
-    <br />
-    <div class="modelist">
-      <button class="btn-primary modebtn" id="btnDiffEasy">쉬움</button>
-      <button class="btn-primary modebtn" id="btnDiffMedium">보통</button>
-      <button class="btn-primary modebtn" id="btnDiffHard">어려움</button>
-    </div>
-  </div>
-
   <div id="catScreen" class="fin hidden">
     <h1 style="font-size: 28px;">카테고리 선택</h1>
     <p style="font-size: 13px;">장소를 고르고 난이도를 선택하세요</p>
@@ -270,10 +260,54 @@
   </div>
 
 <script>
-// ─── 일일 주제 (날짜 시드) ───
-const EASY = ["숟가락", "빨간색 물건", "신발", "컵", "책", "리모컨", "충전 케이블", "베개", "시계", "열쇠"];
-const MEDIUM = ["동그란 것 두 개", "식물 (진짜 살아있는)", "손글씨가 적힌 것", "거울에 비친 자기 손", "노란색과 파란색이 같이 있는 장면", "바퀴 달린 물건", "유리로 된 것", "음식 (포장 안 뜯은 것 제외)"];
-const HARD = ["하늘이 보이는 창문", "세 가지 다른 질감이 한 장에", "그림자가 주인공인 사진", "글자 'ㅇ'이 들어간 간판이나 라벨", "움직이는 것을 찍은 사진", "10년은 넘어 보이는 물건", "이름이 영어로 적힌 물건"];
+// ─── 기본모드 주제 풀 (난이도 구분 없음, 매일 10개씩 · 약 30일 순환) ───
+const BASIC_POOL = [...new Set([
+  // 사물
+  "숟가락","포크","젓가락","컵","머그컵","물병","텀블러","접시","그릇","냄비",
+  "프라이팬","주걱","가위","도마","리모컨","열쇠","지갑","동전","지폐","신발",
+  "양말","슬리퍼","모자","안경","우산","손목시계","벽시계","베개","쿠션","수건",
+  "칫솔","치약","비누","빗","거울","휴지","옷걸이","빨래집게","단추","가방",
+  "필통","연필","볼펜","책","공책","자","지우개","클립","고무줄","병뚜껑",
+  // 색
+  "빨간색 물건","주황색 물건","노란색 물건","초록색 물건","파란색 물건","보라색 물건","분홍색 물건","검은색 물건","흰색 물건","회색 물건",
+  "갈색 물건","금색이나 은색 물건","빨강과 초록이 함께","파랑과 노랑이 함께","흑백만 있는 장면","알록달록 다섯 가지 색","같은 색 물건 세 개","투명한 것","형광색 물건","파스텔 톤 물건",
+  "원색이 강한 물건","하나만 색이 다른 무리","빨간 뚜껑","노란 무언가","초록 잎","파란 하늘색 물건",
+  // 모양·무늬
+  "동그란 것","네모난 것","세모난 것","길쭉한 것","납작한 것","구멍이 뚫린 것","동그란 것 두 개","동그란 것 세 개","네모와 동그라미가 함께","완벽한 원",
+  "별 모양","하트 모양","십자 모양","나선형","격자무늬","줄무늬","물방울무늬","체크무늬","대칭인 물건","좌우가 똑같은 것",
+  // 질감
+  "유리로 된 것","금속으로 된 것","나무로 된 것","플라스틱 물건","천으로 된 것","종이로 된 것","고무로 된 것","가죽 느낌 나는 것","폭신폭신한 것","딱딱한 것",
+  "거친 표면","매끈한 표면","반짝이는 표면","무광 표면","젖은 것","구겨진 것","접힌 것","뾰족한 것","서로 다른 질감 두 가지","서로 다른 질감 세 가지",
+  "오돌토돌한 표면","털이 있는 것","실이나 끈","말랑한 것","까끌한 것",
+  // 구도·연출
+  "세 가지 색이 한 장에","규칙적으로 반복되는 무늬","대칭이 보이는 구도","위에서 내려다본 구도","아래에서 올려다본 구도","아주 가까이 찍은 클로즈업","정중앙에 놓인 하나","나란히 놓인 세 개","잔뜩 쌓여 있는 모습","줄지어 늘어선 것",
+  "흐트러져 있는 모습","프레임 안의 프레임","대각선 구도","여백이 많은 장면","꽉 찬 장면","홀수 개의 물건","짝을 이룬 두 개","크고 작은 것의 대비","같은 물건 여러 개","반쯤 가려진 것",
+  "겹쳐 있는 것","그림자와 실물이 함께","손과 물건이 함께","가지런히 정리된 모습","어질러진 모습","가득 담긴 것","한 줄로 정렬된 것","세 가지 크기가 함께","비어 있는 공간","무언가에 담긴 것",
+  // 빛·그림자
+  "그림자가 주인공인 사진","창가로 든 햇빛","역광으로 찍은 것","빛이 통과하는 것","반짝 빛나는 반사","물에 비친 반사","유리에 비친 반사","강한 그림자","부드러운 그림자","아침 햇살",
+  "노을빛","어두운 곳의 작은 불빛","켜진 전등","작은 조명","화면에서 나오는 빛","빛 번짐","그림자 두 개","길게 늘어진 그림자","빛과 어둠의 대비","창살 그림자",
+  // 자연
+  "진짜 살아있는 식물","화분","나뭇잎 한 장","꽃 한 송이","나무","풀밭","돌멩이","하늘","구름","파란 하늘",
+  "흐린 하늘","노을","해나 달","물이 있는 풍경","빗방울","이슬","흙이나 모래","열매나 씨앗","곤충이나 벌레","새",
+  "동물","나무껍질","이끼","낙엽","가지",
+  // 음식·음료
+  "과일 하나","채소 하나","빵","밥이나 면","음료 한 잔","커피","물 한 잔","과자","사탕이나 초콜릿","아이스크림",
+  "김이 나는 따뜻한 음식","물방울 맺힌 차가운 음료","포장 안 뜯은 음식","반쯤 먹은 음식","접시에 담긴 요리","도시락","색이 알록달록한 음식","빨간 음식","둥근 과일","음료 위 거품",
+  "빨대가 꽂힌 컵","조각 낸 과일","냉장고 속 풍경","노란 과일","초록 채소",
+  // 글자·숫자
+  "손글씨가 적힌 것","인쇄된 글자","영어가 적힌 물건","숫자가 보이는 것","간판","표지판","라벨이나 상표","책 표지","신문이나 잡지","가격표",
+  "명함","스티커","포스터","메모지","달력","도로 표지","버튼에 적힌 글자","자음 'ㅇ'이 보이는 것","자기 이름이 적힌 것","여러 글자가 빼곡한 것",
+  // 사람·신체
+  "자기 손","자기 발","손바닥","주먹","손가락으로 만든 모양","거울 셀카","그림자 셀카","두 손이 함께","손에 든 물건","신발 신은 발",
+  // 전자기기
+  "스마트폰","노트북","키보드","마우스","이어폰","충전 케이블","콘센트","배터리","화면에 뜬 무언가","전선이 얽힌 모습",
+  "켜진 화면","버튼이 많은 기기","카메라 렌즈","USB나 메모리","작은 전자부품",
+  // 오래됨·새것·움직임·기타
+  "오래돼 보이는 물건","10년은 넘어 보이는 것","새것 같은 물건","낡고 닳은 것","녹슨 것","움직이는 것을 찍은 사진","바람에 날리는 것","굴러가는 것","바퀴 달린 물건","문이나 창문",
+  "손잡이","계단","벽의 무늬","바닥의 무늬","천장","모서리","틈새","우편함","자전거","벤치",
+  "가로등","횡단보도","벽돌이나 타일","액체가 담긴 것","접었다 펼 수 있는 것","소리가 날 것 같은 물건","웃는 얼굴이 연상되는 것","숨은 그림 같은 것","한 손에 들어오는 것","오늘 새로 산 것",
+  "자물쇠","바코드나 QR코드","깃털","조개껍데기","리본이나 매듭","우표나 도장","방울이나 종","손전등 불빛",
+])];
 
 function mulberry32(seed) {
   return function () {
@@ -295,19 +329,23 @@ function todayKey() {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
-const STAGE_COUNT = 7;
-const DIFFS = {
-  easy: { label: "쉬움", pool: EASY, failLimit: null, failScope: null },
-  medium: { label: "보통", pool: MEDIUM, failLimit: 3, failScope: "stage" },
-  hard: { label: "어려움", pool: HARD, failLimit: 5, failScope: "run" },
-};
-
-function buildThemesForDifficulty(diff) {
-  const key = todayKey() + diff;
+const BASIC_PER_DAY = 10;
+// 1970 기준 경과 일수 (같은 달력 날짜면 모두 동일)
+function dayNumber() {
+  const d = new Date();
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+}
+// 그날의 10개: 풀 전체를 주기별로 섞어 하루치씩 잘라 씀 (한 주기 내 중복 없음)
+function buildBasicThemes() {
+  const perCycle = Math.floor(BASIC_POOL.length / BASIC_PER_DAY);
+  const dn = dayNumber();
+  const cycle = Math.floor(dn / perCycle);
+  const dayInCycle = dn % perCycle;
   let seed = 0;
+  const key = "basic" + cycle;
   for (const c of key) seed = (seed * 31 + c.charCodeAt(0)) | 0;
-  const rand = mulberry32(seed);
-  return seededShuffle(DIFFS[diff].pool, rand).slice(0, STAGE_COUNT);
+  const shuffled = seededShuffle(BASIC_POOL, mulberry32(seed));
+  return shuffled.slice(dayInCycle * BASIC_PER_DAY, dayInCycle * BASIC_PER_DAY + BASIC_PER_DAY);
 }
 
 // ─── 카테고리 모드 주제 (난이도별 10문제 고정, 날짜 무관) ───
@@ -515,7 +553,6 @@ const els = {
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
   failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
   btnStart: $("btnStart"), btnModeBasic: $("btnModeBasic"), btnModeCategory: $("btnModeCategory"),
-  btnDiffEasy: $("btnDiffEasy"), btnDiffMedium: $("btnDiffMedium"), btnDiffHard: $("btnDiffHard"),
   btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
   btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
   catDiffTitle: $("catDiffTitle"), btnCatEasy: $("btnCatEasy"), btnCatHard: $("btnCatHard"),
@@ -527,7 +564,7 @@ const els = {
 els.date.textContent = todayKey();
 
 // ─── 화면 전환 ───
-const SCREENS = { title: "titleScreen", mode: "modeScreen", diff: "diffScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
+const SCREENS = { title: "titleScreen", mode: "modeScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
 let currentScreen = "title";
 
 function showScreen(name) {
@@ -542,7 +579,7 @@ function showScreen(name) {
 function goBack() {
   if (currentScreen === "mode") {
     showScreen("title");
-  } else if (currentScreen === "diff" || currentScreen === "cat") {
+  } else if (currentScreen === "cat") {
     showScreen("mode");
   } else if (currentScreen === "catdiff") {
     showScreen("cat");
@@ -786,7 +823,7 @@ els.btnStart.onclick = () => showScreen("mode");
 els.btnCollection.onclick = () => showScreen("collection");
 els.btnFinCollection.onclick = () => showScreen("collection");
 
-els.btnModeBasic.onclick = () => showScreen("diff");
+els.btnModeBasic.onclick = () => startBasic();
 els.btnModeCategory.onclick = () => showScreen("cat");
 
 function startRun(cfg, themeList) {
@@ -798,12 +835,12 @@ function startRun(cfg, themeList) {
   render("idle");
 }
 
-function startDifficulty(diff) {
+function startBasic() {
   startRun({
-    tierPrefix: "난이도", label: DIFFS[diff].label,
-    failLimit: DIFFS[diff].failLimit, failScope: DIFFS[diff].failScope,
-    saveKey: "chalkak_" + diff, selectScreen: "diff",
-  }, buildThemesForDifficulty(diff));
+    tierPrefix: "기본", label: "오늘의 랜덤",
+    failLimit: null, failScope: null, showProgress: true,
+    saveKey: "chalkak_basic", selectScreen: "mode",
+  }, buildBasicThemes());
 }
 
 function startCategory(cat, diff) {
@@ -814,9 +851,6 @@ function startCategory(cat, diff) {
   }, CATEGORIES[cat][diff].slice(0, CAT_STAGE_COUNT));
 }
 
-els.btnDiffEasy.onclick = () => startDifficulty("easy");
-els.btnDiffMedium.onclick = () => startDifficulty("medium");
-els.btnDiffHard.onclick = () => startDifficulty("hard");
 
 function selectCategory(cat) {
   selectedCat = cat;
