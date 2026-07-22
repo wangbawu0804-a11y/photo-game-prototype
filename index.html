@@ -135,16 +135,12 @@
   .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
   .cam-island .pill .g { width: 9px; height: 9px; border-radius: 50%; background: #37d34a; }
   .cam-view { position: relative; aspect-ratio: 3 / 4; background: radial-gradient(150% 100% at 62% 28%, #14171d 0%, #000 72%); }
-  .cam-grid .ln { position: absolute; background: rgba(255,255,255,0.16); }
-  .cam-grid .v { top: 0; bottom: 0; width: 1px; } .cam-grid .va { left: 33.33%; } .cam-grid .vb { left: 66.66%; }
-  .cam-grid .h { left: 0; right: 0; height: 1px; } .cam-grid .ha { top: 33.33%; } .cam-grid .hb { top: 66.66%; }
   .cam-ctrls { position: absolute; top: 14px; right: 12px; display: flex; align-items: center; gap: 15px; background: rgba(30,30,34,0.82); padding: 7px 13px; border-radius: 18px; font-size: 16px; line-height: 1; }
   .cam-ctrls .moon { display: flex; align-items: center; gap: 2px; background: var(--flash); color: #3a2e00; border-radius: 11px; padding: 2px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; }
   .cam-ctrls .ic { color: #ececf0; opacity: 0.92; }
-  .cam-reticle { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 44px; height: 44px; }
-  .cam-reticle::before, .cam-reticle::after { content: ''; position: absolute; background: var(--flash); }
-  .cam-reticle::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
-  .cam-reticle::after { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+  .cam-hero { position: absolute; left: 0; right: 0; top: 33%; transform: translateY(-50%); text-align: center; z-index: 1; }
+  .cam-logo { font-family: 'Black Han Sans', sans-serif; font-size: 36px; color: var(--flash); letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
+  .cam-cam { width: 88px; height: auto; margin-top: 16px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)); }
   .cam-zoom { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; align-items: center; gap: 16px; color: #fff; font-size: 13px; }
   .cam-zoom .z { opacity: 0.82; }
   .cam-zoom .z.on { background: rgba(0,0,0,0.5); color: var(--flash); font-weight: 700; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
@@ -176,17 +172,24 @@
     <div class="cam">
       <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
       <div class="cam-view">
-        <div class="cam-grid">
-          <span class="ln v va"></span><span class="ln v vb"></span>
-          <span class="ln h ha"></span><span class="ln h hb"></span>
-        </div>
         <div class="cam-ctrls">
           <span class="moon">☾5</span>
           <span class="ic">⚡</span>
           <span class="ic">◉</span>
-          <span class="ic">▦</span>
         </div>
-        <div class="cam-reticle"></div>
+        <div class="cam-hero">
+          <div class="cam-logo">오늘의 찰칵</div>
+          <svg class="cam-cam" viewBox="0 0 104 80" aria-label="사진기">
+            <rect x="40" y="8" width="24" height="12" rx="3" fill="#F6F5F0"/>
+            <rect x="6" y="18" width="92" height="56" rx="10" fill="#F6F5F0"/>
+            <rect x="16" y="27" width="13" height="8" rx="2" fill="#FFD338"/>
+            <circle cx="82" cy="30" r="3.5" fill="#15181F"/>
+            <circle cx="52" cy="47" r="18" fill="#15181F"/>
+            <circle cx="52" cy="47" r="12" fill="#FFD338"/>
+            <circle cx="52" cy="47" r="5" fill="#15181F"/>
+            <circle cx="47" cy="42" r="3" fill="#FFFFFF" opacity="0.85"/>
+          </svg>
+        </div>
         <div class="cam-zoom"><span class="z">.5</span><span class="z on">1×</span><span class="z">2</span></div>
       </div>
       <div class="cam-bottom">
