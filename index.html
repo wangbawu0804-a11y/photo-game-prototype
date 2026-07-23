@@ -139,6 +139,16 @@
   .selbtn { width: 100%; flex: none; background: #1b202b; border: 1px solid #2b3240; color: var(--paper); font-weight: 700; font-size: 17px; padding: 15px 0; border-radius: 14px; }
   .selbtn:active { transform: scale(0.98); }
   .cam-bottom.sel-bottom { display: flex; align-items: center; justify-content: flex-end; padding: 14px 22px; }
+  /* 게임 카드 레이아웃 */
+  #game { align-items: center; padding: 4px 16px 12px; gap: 11px; }
+  #game .cam-island { padding: 4px 0 0; }
+  #game .counter { margin: 0; }
+  #game .themecard { margin: 0; }
+  #game .frame { flex: 1 1 auto; min-height: 0; margin: 0; aspect-ratio: auto; }
+  #game .verdictbox { margin: 0; }
+  .gbtns { position: relative; width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: center; min-height: 92px; }
+  .gbtns .btnrow { width: auto; max-width: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .gbtns #gameBack { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
   .cam { position: relative; flex: 1 1 auto; min-height: 0; width: 100%; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; display: flex; flex-direction: column; }
   .cam-island { display: flex; justify-content: center; padding: 9px 0 5px; }
   .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
@@ -291,48 +301,48 @@
   </div>
 
   <div id="game" class="hidden">
-    <div class="cam">
-      <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
-      <div class="frame game-view" id="frame">
-        <div class="cam-date js-date"></div>
-        <div class="game-top">
-          <div class="gt-row">
-            <span class="gt-stage">STAGE <b id="stageNum">01</b></span>
-            <span class="progress hidden" id="progress">0/10</span>
-          </div>
-          <div class="gt-tier" id="tier"></div>
-          <div class="gt-eyebrow">지금 찾을 것</div>
-          <h2 class="gt-theme" id="themeText"></h2>
-          <div class="gt-meta">
-            <span class="best">오늘 최고 <b id="bestNum">0</b></span>
-            <span class="fails hidden" id="failCount">실패 <b id="failNum">0</b>/<span id="failLimit">3</span> <span class="failscope" id="failScopeLabel"></span></span>
-          </div>
-        </div>
-        <div class="corner tl"></div><div class="corner tr"></div>
-        <div class="corner bl"></div><div class="corner br"></div>
-        <div class="empty" id="emptyMsg">주제에 맞는 걸 찾아서<br />셔터를 눌러 보세요</div>
-        <video id="camVideo" class="hidden" playsinline autoplay muted></video>
-        <img id="photoImg" class="hidden" alt="제출한 사진" />
-        <div class="judging-txt hidden" id="judgingTxt">AI 심판 판정 중…</div>
-        <div class="stamp pass hidden" id="stampPass">통과</div>
-        <div class="stamp fail hidden" id="stampFail">탈락</div>
+    <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
+    <div class="counter">
+      <div class="counter-num" id="stageNum">01</div>
+      <div class="counter-meta">
+        <div class="counter-label">STAGE</div>
+        <div class="tier" id="tier">기본 · 오늘의 랜덤</div>
+        <div class="best">오늘 최고 기록 <b id="bestNum">0</b>단계</div>
+        <div class="fails hidden" id="failCount">실패 <b id="failNum">0</b> / <span id="failLimit">3</span> <span class="failscope" id="failScopeLabel"></span></div>
       </div>
-      <div class="verdictbox hidden" id="verdictBox">
-        <span id="verdictComment"></span>
-        <div class="seen hidden" id="verdictSeen"></div>
+    </div>
+    <div class="themecard">
+      <div class="themecard-head">
+        <div class="eyebrow">지금 찾을 것</div>
+        <div class="progress hidden" id="progress">0/10</div>
       </div>
-      <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" />
-      <div class="cam-bottom game-bar">
-        <div class="btnrow">
-          <button class="shootbtn" id="btnShoot"><span class="scap">촬영</span></button>
-          <button class="shootbtn hidden" id="btnCapture"><span class="scap">촬영</span></button>
-          <button class="btn-ghost pill hidden" id="btnRetake">다시 찍기</button>
-          <button class="btn-primary pill hidden" id="btnSubmit">제출하기</button>
-          <button class="btn-pass pill hidden" id="btnNext">다음 단계 →</button>
-          <button class="btn-primary pill hidden" id="btnRetry">다시 도전</button>
-        </div>
-        <button class="cam-flip" id="gameBack" type="button" aria-label="뒤로">↩</button>
+      <h1 id="themeText"></h1>
+    </div>
+    <div class="frame" id="frame">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="empty" id="emptyMsg">주제에 맞는 걸 찾아서<br />카메라로 찍어 보세요</div>
+      <video id="camVideo" class="hidden" playsinline autoplay muted></video>
+      <img id="photoImg" class="hidden" alt="제출한 사진" />
+      <div class="judging-txt hidden" id="judgingTxt">AI 심판 판정 중…</div>
+      <div class="stamp pass hidden" id="stampPass">통과</div>
+      <div class="stamp fail hidden" id="stampFail">탈락</div>
+    </div>
+    <div class="verdictbox hidden" id="verdictBox">
+      <span id="verdictComment"></span>
+      <div class="seen hidden" id="verdictSeen"></div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" />
+    <div class="gbtns">
+      <div class="btnrow">
+        <button class="shootbtn" id="btnShoot"><span class="scap">촬영</span></button>
+        <button class="shootbtn hidden" id="btnCapture"><span class="scap">촬영</span></button>
+        <button class="btn-ghost pill hidden" id="btnRetake">다시 찍기</button>
+        <button class="btn-primary pill hidden" id="btnSubmit">제출하기</button>
+        <button class="btn-pass pill hidden" id="btnNext">다음 단계 →</button>
+        <button class="btn-primary pill hidden" id="btnRetry">다시 도전</button>
       </div>
+      <button class="cam-flip" id="gameBack" type="button" aria-label="뒤로">↩</button>
     </div>
   </div>
 
