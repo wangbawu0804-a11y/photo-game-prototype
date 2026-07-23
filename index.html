@@ -138,7 +138,7 @@
   .sel-list { display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 300px; }
   .selbtn { width: 100%; flex: none; background: #1b202b; border: 1px solid #2b3240; color: var(--paper); font-weight: 700; font-size: 17px; padding: 15px 0; border-radius: 14px; }
   .selbtn:active { transform: scale(0.98); }
-  .cam-bottom.sel-bottom { display: flex; align-items: center; justify-content: flex-end; padding: 14px 22px; }
+  .cam-bottom.sel-bottom { display: flex; align-items: center; justify-content: flex-end; padding: 14px 26px; }
   /* 게임 카드 레이아웃 */
   #game { align-items: center; padding: 4px 16px 12px; gap: 11px; }
   #game .cam-island { padding: 4px 0 0; }
@@ -148,7 +148,7 @@
   #game .verdictbox { margin: 0; }
   .gbtns { position: relative; width: 100%; max-width: 420px; display: flex; align-items: center; justify-content: center; min-height: 92px; }
   .gbtns .btnrow { width: auto; max-width: none; display: flex; align-items: center; justify-content: center; gap: 12px; }
-  .gbtns #gameBack { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+  .gbtns #gameBack { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
   .cam { position: relative; flex: 1 1 auto; min-height: 0; width: 100%; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; display: flex; flex-direction: column; }
   .cam-island { display: flex; justify-content: center; padding: 9px 0 5px; }
   .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
@@ -177,6 +177,7 @@
   .shutter:active::after { transform: scale(0.9); }
   @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0.12); } }
   .cam-flip { width: 44px; height: 44px; border-radius: 50%; background: #2a2a2e; border: none; color: #fff; font-size: 19px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .cam-flip:disabled { opacity: 1; cursor: default; }
   .cam-date { position: absolute; top: 14px; left: 16px; z-index: 4; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.72); letter-spacing: 1px; }
   .shootbtn { width: 78px; height: 78px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; animation: shutterpulse 2.4s ease-in-out infinite; }
   .shootbtn::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #fff; }
@@ -255,7 +256,7 @@
         </div>
       </div>
       <div class="cam-bottom sel-bottom">
-        <button class="cam-flip" id="catBack" type="button" aria-label="뒤로">↩</button>
+        <button class="cam-flip" id="catBack" type="button" aria-label="뒤로">⟳</button>
       </div>
     </div>
   </div>
@@ -278,7 +279,7 @@
         </div>
       </div>
       <div class="cam-bottom sel-bottom">
-        <button class="cam-flip" id="catDiffBack" type="button" aria-label="뒤로">↩</button>
+        <button class="cam-flip" id="catDiffBack" type="button" aria-label="뒤로">⟳</button>
       </div>
     </div>
   </div>
@@ -325,7 +326,7 @@
         <button class="btn-pass pill hidden" id="btnNext">다음 단계 →</button>
         <button class="btn-primary pill hidden" id="btnRetry">다시 도전</button>
       </div>
-      <button class="cam-flip" id="gameBack" type="button" aria-label="뒤로">↩</button>
+      <button class="cam-flip" id="gameBack" type="button" aria-label="뒤로">⟳</button>
     </div>
   </div>
 
