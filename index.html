@@ -130,7 +130,15 @@
   #finCat .cat-svg { width: 150px; height: 150px; }
   #finCatName { font-family: 'Black Han Sans', sans-serif; color: var(--flash); font-size: 22px; margin: 6px 0 16px; }
   /* 타이틀 — 아이폰 카메라 UI */
-  #titleScreen, #game { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 420px; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+  #titleScreen, #game, .camscreen { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 420px; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+  .sel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 26px; text-align: center; }
+  .sel-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--dim); }
+  .sel-title { font-family: 'Black Han Sans', sans-serif; font-size: 34px; color: var(--flash); margin-top: 4px; }
+  .sel-sub { font-size: 13px; color: var(--dim); margin-top: 6px; margin-bottom: 22px; }
+  .sel-list { display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 300px; }
+  .selbtn { width: 100%; flex: none; background: #1b202b; border: 1px solid #2b3240; color: var(--paper); font-weight: 700; font-size: 17px; padding: 15px 0; border-radius: 14px; }
+  .selbtn:active { transform: scale(0.98); }
+  .cam-bottom.sel-bottom { display: flex; align-items: center; justify-content: flex-end; padding: 14px 22px; }
   .cam { position: relative; flex: 1 1 auto; min-height: 0; width: 100%; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #000; display: flex; flex-direction: column; }
   .cam-island { display: flex; justify-content: center; padding: 9px 0 5px; }
   .cam-island .pill { width: 96px; height: 22px; background: #000; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
@@ -232,26 +240,52 @@
   </div>
 
 
-  <div id="catScreen" class="fin hidden">
-    <h1 style="font-size: 28px;">카테고리 선택</h1>
-    <p style="font-size: 13px;">장소를 고르고 난이도를 선택하세요</p>
-    <br />
-    <div class="modelist">
-      <button class="btn-primary modebtn" id="btnCatOffice">회사</button>
-      <button class="btn-primary modebtn" id="btnCatSchool">학교</button>
-      <button class="btn-primary modebtn" id="btnCatHome">집</button>
-      <button class="btn-primary modebtn" id="btnCatCafe">카페</button>
-      <button class="btn-primary modebtn" id="btnCatStreet">길거리</button>
+  <div id="catScreen" class="camscreen hidden">
+    <div class="cam">
+      <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
+      <div class="cam-view sel-view">
+        <div class="cam-date js-date"></div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="sel">
+          <div class="sel-eyebrow">SELECT · 장소</div>
+          <h2 class="sel-title">카테고리</h2>
+          <p class="sel-sub">장소를 고르세요</p>
+          <div class="sel-list">
+            <button class="selbtn" id="btnCatOffice">회사</button>
+            <button class="selbtn" id="btnCatSchool">학교</button>
+            <button class="selbtn" id="btnCatHome">집</button>
+            <button class="selbtn" id="btnCatCafe">카페</button>
+            <button class="selbtn" id="btnCatStreet">길거리</button>
+          </div>
+        </div>
+      </div>
+      <div class="cam-bottom sel-bottom">
+        <button class="cam-flip" id="catBack" type="button" aria-label="뒤로">↩</button>
+      </div>
     </div>
   </div>
 
-  <div id="catDiffScreen" class="fin hidden">
-    <h1 style="font-size: 28px;" id="catDiffTitle">난이도 선택</h1>
-    <p style="font-size: 13px;">난이도별로 정해진 주제 10개에 도전해요</p>
-    <br />
-    <div class="modelist">
-      <button class="btn-primary modebtn" id="btnCatEasy">쉬움<span class="clearbadge hidden">CLEAR</span></button>
-      <button class="btn-primary modebtn" id="btnCatHard">어려움<span class="clearbadge hidden">CLEAR</span></button>
+  <div id="catDiffScreen" class="camscreen hidden">
+    <div class="cam">
+      <div class="cam-island"><div class="pill"><span class="g"></span></div></div>
+      <div class="cam-view sel-view">
+        <div class="cam-date js-date"></div>
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="sel">
+          <div class="sel-eyebrow">SELECT · 난이도</div>
+          <h2 class="sel-title" id="catDiffTitle">난이도</h2>
+          <p class="sel-sub">난이도별 주제 10개에 도전</p>
+          <div class="sel-list">
+            <button class="selbtn" id="btnCatEasy">쉬움<span class="clearbadge hidden">CLEAR</span></button>
+            <button class="selbtn" id="btnCatHard">어려움<span class="clearbadge hidden">CLEAR</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="cam-bottom sel-bottom">
+        <button class="cam-flip" id="catDiffBack" type="button" aria-label="뒤로">↩</button>
+      </div>
     </div>
   </div>
 
@@ -642,7 +676,7 @@ function showScreen(name) {
   $(SCREENS[name]).classList.remove("hidden");
   currentScreen = name;
   els.btnBack.classList.toggle("hidden", name === "title");
-  $("topbar").classList.toggle("hidden", name === "title" || name === "game");
+  $("topbar").classList.toggle("hidden", ["title", "game", "cat", "catdiff"].includes(name));
   if (name === "catdiff") renderCatDiffBadges();
   if (name === "collection") renderCollection();
 }
@@ -929,7 +963,7 @@ function startCategory(cat, diff) {
 
 function selectCategory(cat) {
   selectedCat = cat;
-  els.catDiffTitle.textContent = CATEGORIES[cat].label + " · 난이도 선택";
+  els.catDiffTitle.textContent = CATEGORIES[cat].label;
   showScreen("catdiff");
 }
 els.btnCatOffice.onclick = () => selectCategory("office");
@@ -943,6 +977,8 @@ els.btnCatHard.onclick = () => startCategory(selectedCat, "hard");
 
 els.btnFailBack.onclick = () => showScreen(run.selectScreen);
 $("gameBack").onclick = goBack;
+$("catBack").onclick = goBack;
+$("catDiffBack").onclick = goBack;
 
 // 타이틀 갤러리 썸네일에 강아지 스프라이트 표시
 els.btnCollection.innerHTML = catSVG("office", false);
