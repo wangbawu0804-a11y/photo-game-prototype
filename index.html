@@ -614,7 +614,7 @@ function renderFin(clearKey, newly) {
 
 // ─── 상태 ───
 // run: 현재 판 설정 { tierPrefix, label, failLimit, failScope, saveKey, selectScreen }
-let run = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0, selectedCat = null;
+let run = null, themes = [], stage = 1, best = 0, photoB64 = null, fails = 0, selectedCat = null, gamePhase = "";
 
 // 기록 복원. 기본 모드는 날짜 바뀌면 리셋, 카테고리 모드(keepAcrossDays)는 계속 유지
 function loadProgress() {
@@ -681,6 +681,13 @@ function showScreen(name) {
 
 // 항상 바로 전 화면으로 (히스토리 스택). 완료 화면(fin)에서는 이미 끝난 game은 건너뜀
 function goBack() {
+  // 게임 촬영/미리보기 중 뒤로 = 촬영 전(idle)으로 (게임을 나가지 않음)
+  if (currentScreen === "game" && (gamePhase === "camera" || gamePhase === "preview")) {
+    photoB64 = null;
+    stopCamera();
+    render("idle");
+    return;
+  }
   if (currentScreen === "game") stopCamera();
   if (currentScreen === "fin" || currentScreen === "fail") {
     while (navStack.length && navStack[navStack.length - 1] === "game") navStack.pop();
@@ -703,6 +710,7 @@ function render(phase) {
     showScreen("fin");
     return;
   }
+  gamePhase = phase;
   els.stageNum.textContent = String(stage).padStart(2, "0");
   els.tier.textContent = run.tierPrefix + " · " + run.label;
   els.bestNum.textContent = best;
@@ -740,7 +748,7 @@ function render(phase) {
     els.video.classList.remove("hidden");
     els.empty.classList.add("hidden");
     els.verdictBox.classList.add("hidden");
-    showButtons("btnCapture", "btnRetry");
+    showButtons("btnCapture");
   } else if (phase === "preview") {
     els.video.classList.add("hidden");
     els.img.classList.remove("hidden");
