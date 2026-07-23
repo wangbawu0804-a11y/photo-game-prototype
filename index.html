@@ -664,8 +664,12 @@ document.querySelectorAll(".js-date").forEach((e) => { e.textContent = todayKey(
 // ─── 화면 전환 ───
 const SCREENS = { title: "titleScreen", cat: "catScreen", catdiff: "catDiffScreen", game: "game", fin: "finScreen", fail: "failScreen", collection: "collectionScreen" };
 let currentScreen = "title";
+let navStack = [];   // 방문 기록 (뒤로가기용)
+let navBack = false; // goBack 중이면 스택에 push하지 않음
 
 function showScreen(name) {
+  if (navBack) navBack = false;
+  else if (currentScreen !== name) navStack.push(currentScreen);
   Object.values(SCREENS).forEach((id) => $(id).classList.add("hidden"));
   $(SCREENS[name]).classList.remove("hidden");
   currentScreen = name;
@@ -675,19 +679,14 @@ function showScreen(name) {
   if (name === "collection") renderCollection();
 }
 
+// 항상 바로 전 화면으로 (히스토리 스택). 완료 화면(fin)에서는 이미 끝난 game은 건너뜀
 function goBack() {
-  if (currentScreen === "cat") {
-    showScreen("title");
-  } else if (currentScreen === "catdiff") {
-    showScreen("cat");
-  } else if (currentScreen === "collection") {
-    showScreen("title");
-  } else if (currentScreen === "game") {
-    stopCamera();
-    showScreen(run.selectScreen);
-  } else if (currentScreen === "fin" || currentScreen === "fail") {
-    showScreen(run.selectScreen);
+  if (currentScreen === "game") stopCamera();
+  if (currentScreen === "fin" || currentScreen === "fail") {
+    while (navStack.length && navStack[navStack.length - 1] === "game") navStack.pop();
   }
+  navBack = true;
+  showScreen(navStack.length ? navStack.pop() : "title");
 }
 els.btnBack.onclick = goBack;
 
