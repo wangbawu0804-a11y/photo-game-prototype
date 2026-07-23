@@ -33,11 +33,11 @@
     border-radius: 8px; padding: 2px 14px; min-width: 96px; text-align: center; letter-spacing: 2px;
   }
   .counter-meta { display: flex; flex-direction: column; gap: 3px; }
-  .counter-label { font-size: 12px; color: var(--dim); letter-spacing: 2px; }
-  .tier { font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
-  .best { font-size: 12px; color: var(--dim); }
+  .counter-label { font-size: 13px; color: var(--dim); letter-spacing: 2px; }
+  .tier { font-family: 'IBM Plex Mono', monospace; font-size: 15px; }
+  .best { font-size: 14px; color: var(--dim); }
   .best b { color: var(--pass); font-family: 'IBM Plex Mono', monospace; }
-  .fails { font-size: 12px; color: var(--dim); }
+  .fails { font-size: 13px; color: var(--dim); }
   .fails b { color: var(--fail); font-family: 'IBM Plex Mono', monospace; }
   .failscope { font-size: 11px; color: var(--dim); opacity: 0.8; }
   .themecard {
@@ -178,23 +178,6 @@
   @keyframes shutterpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0.12); } }
   .cam-flip { width: 44px; height: 44px; border-radius: 50%; background: #2a2a2e; border: none; color: #fff; font-size: 19px; flex: none; display: flex; align-items: center; justify-content: center; }
   .cam-date { position: absolute; top: 14px; left: 16px; z-index: 4; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.72); letter-spacing: 1px; }
-  /* 게임 화면 — 카메라 뷰 */
-  .cam .frame.game-view { max-width: none; width: 100%; flex: 1 1 auto; min-height: 0; aspect-ratio: auto; border-radius: 0; margin: 0; background: radial-gradient(150% 100% at 62% 28%, #14171d 0%, #000 72%); }
-  .game-top { position: absolute; top: calc(33% + 40px); left: 0; right: 0; transform: translateY(-50%); z-index: 3; padding: 0 20px; text-align: left;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.85)); }
-  .gt-row { display: flex; justify-content: space-between; align-items: center; }
-  .gt-stage { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 2px; color: var(--dim); }
-  .gt-stage b { color: var(--flash); font-size: 16px; }
-  .gt-tier { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--dim); margin-top: 2px; }
-  .gt-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--flash); opacity: 0.85; margin-top: 12px; }
-  .gt-theme { font-family: 'Black Han Sans', sans-serif; font-size: 30px; line-height: 1.15; color: #fff; margin-top: 3px; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
-  .gt-meta { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--dim); }
-  .gt-meta .best b { color: var(--pass); font-family: 'IBM Plex Mono', monospace; }
-  .gt-meta .fails b { color: var(--fail); font-family: 'IBM Plex Mono', monospace; }
-  .game-view .empty { position: absolute; top: 60%; left: 0; right: 0; z-index: 1; }
-  .game-bar { position: relative; display: flex; align-items: center; justify-content: center; min-height: 98px; }
-  .game-bar .btnrow { width: auto; max-width: none; display: flex; gap: 12px; align-items: center; justify-content: center; }
-  .game-bar #gameBack { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); }
   .shootbtn { width: 78px; height: 78px; border-radius: 50%; padding: 0; flex: none; background: transparent; border: none; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; animation: shutterpulse 2.4s ease-in-out infinite; }
   .shootbtn::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px solid #fff; }
   .shootbtn::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; transition: transform 0.08s; }
