@@ -50,6 +50,8 @@
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
   .modal-box { background: #1E222C; border: 1px solid #2A2F3B; border-radius: 18px; padding: 26px 22px; width: 82%; max-width: 320px; text-align: center; }
   .modal-msg { font-size: 17px; font-weight: 700; color: var(--paper); margin-bottom: 20px; }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--flash); margin-bottom: 14px; }
+  .modal-note { font-size: 14px; line-height: 1.9; color: var(--paper); text-align: left; margin-bottom: 22px; }
   .modal-btns { display: flex; gap: 12px; justify-content: center; }
   .modal-btns .pill { flex: 1; }
   .themecard {
@@ -353,6 +355,16 @@
       <div class="modal-btns">
         <button class="btn-ghost pill" id="btnGiveNo">아니오</button>
         <button class="btn-primary pill" id="btnGiveYes">예</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="taNoticeModal" class="modal hidden">
+    <div class="modal-box">
+      <p class="modal-title">타임어택 안내</p>
+      <p class="modal-note">• 주제는 매일 0시 기준으로 초기화돼요<br />• 첫 번째 주제는 모든 기기가 동일해요<br />• 두 번째부터는 랜덤으로 나와요</p>
+      <div class="modal-btns">
+        <button class="btn-primary pill" id="btnTaNoticeOk">확인</button>
       </div>
     </div>
   </div>
@@ -682,6 +694,7 @@ const els = {
   bestLine: $("bestLine"), taTime: $("taTime"),
   btnMakeGen: $("btnMakeGen"), btnMakeYes: $("btnMakeYes"), btnMakeNo: $("btnMakeNo"),
   giveupModal: $("giveupModal"), btnGiveNo: $("btnGiveNo"), btnGiveYes: $("btnGiveYes"),
+  taNoticeModal: $("taNoticeModal"), btnTaNoticeOk: $("btnTaNoticeOk"),
   finDefTitle: $("finDefTitle"), finDefText: $("finDefText"),
   btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
   btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
@@ -1042,9 +1055,13 @@ els.time5.onclick = () => setMinutes(5);
 els.time10.onclick = () => setMinutes(10);
 els.btnStart.onclick = () => {
   if (selectedMode === "cat") showScreen("cat");
-  else if (selectedMode === "time") startTimeAttack(selectedMinutes);
+  else if (selectedMode === "time") els.taNoticeModal.classList.remove("hidden"); // 안내 후 확인 시 시작
   else if (selectedMode === "making") startMaking();
   else startBasic();
+};
+els.btnTaNoticeOk.onclick = () => {
+  els.taNoticeModal.classList.add("hidden");
+  startTimeAttack(selectedMinutes);
 };
 els.btnCollection.onclick = () => showScreen("collection");
 els.btnFinCollection.onclick = () => showScreen("collection");
