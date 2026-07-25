@@ -39,6 +39,8 @@
   .best b { color: var(--pass); font-family: 'IBM Plex Mono', monospace; }
   .fails { font-size: 13px; color: var(--dim); }
   .fails b { color: var(--fail); font-family: 'IBM Plex Mono', monospace; }
+  .tatime { font-size: 14px; color: var(--dim); }
+  .tatime b { color: var(--flash); font-family: 'IBM Plex Mono', monospace; }
   .failscope { font-size: 11px; color: var(--dim); opacity: 0.8; }
   .themecard {
     width: 100%; max-width: 420px; background: var(--flash); color: var(--ink);
@@ -161,9 +163,9 @@
   .cam-hero { position: absolute; left: 0; right: 0; top: calc(33% + 40px); transform: translateY(-50%); text-align: center; z-index: 1; }
   .cam-logo { font-family: 'Black Han Sans', sans-serif; font-size: 36px; color: var(--flash); letter-spacing: 1px; -webkit-text-stroke: 1.4px var(--flash); text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
   .cam-cam { width: 170px; height: auto; margin-top: 20px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5)); }
-  .cam-zoom { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; align-items: center; gap: 16px; color: #fff; font-size: 13px; }
-  .cam-zoom .z { opacity: 0.82; }
-  .cam-zoom .z.on { background: rgba(0,0,0,0.5); color: var(--flash); font-weight: 700; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .cam-timesel { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; align-items: center; gap: 12px; }
+  .cam-timesel .tsel { font-weight: 700; font-size: 15px; color: #9a9aa2; padding: 6px 16px; border: 1px solid #2b3240; border-radius: 16px; background: rgba(20,23,30,0.7); cursor: pointer; user-select: none; }
+  .cam-timesel .tsel.on { color: var(--ink); background: var(--flash); border-color: var(--flash); }
   .cam-bottom { background: #000; padding: 14px 0 12px; }
   .cam-mode { display: flex; justify-content: center; gap: 20px; font-size: 18px; margin-bottom: 16px; }
   .cam-mode .cmode { color: #9a9aa2; font-weight: 700; cursor: pointer; padding: 4px 17px; border: 1px solid transparent; border-radius: 15px; user-select: none; }
@@ -222,10 +224,10 @@
             <circle cx="47" cy="42" r="3" fill="#FFFFFF" opacity="0.85"/>
           </svg>
         </div>
-        <div class="cam-zoom"><span class="z">.5</span><span class="z on">1×</span><span class="z">2</span></div>
+        <div class="cam-timesel hidden" id="timeSel"><span class="tsel on" id="time5">5분</span><span class="tsel" id="time10">10분</span></div>
       </div>
       <div class="cam-bottom">
-        <div class="cam-mode"><span class="cmode on" id="tabBasic">기본</span><span class="cmode" id="tabCat">주제별</span></div>
+        <div class="cam-mode"><span class="cmode on" id="tabBasic">기본</span><span class="cmode" id="tabCat">주제별</span><span class="cmode" id="tabTime">타임어택</span></div>
         <div class="cam-actions">
           <button class="cam-thumb" id="btnCollection" aria-label="컬렉션 보기"></button>
           <button class="shutter" id="btnStart"><span class="scap">시작</span></button>
@@ -292,7 +294,8 @@
       <div class="counter-meta">
         <div class="counter-label">STAGE</div>
         <div class="tier" id="tier">기본 · 오늘의 랜덤</div>
-        <div class="best">오늘 최고 기록 <b id="bestNum">0</b>단계</div>
+        <div class="best" id="bestLine">오늘 최고 기록 <b id="bestNum">0</b>단계</div>
+        <div class="tatime hidden" id="taTime">⏱ <b>05:00</b> · 클리어 <b id="taCleared">0</b></div>
         <div class="fails hidden" id="failCount">실패 <b id="failNum">0</b> / <span id="failLimit">3</span> <span class="failscope" id="failScopeLabel"></span></div>
       </div>
     </div>
@@ -350,7 +353,7 @@
   </div>
 
   <div id="failScreen" class="fin hidden">
-    <h1 style="color: var(--fail);">GAME OVER</h1>
+    <h1 id="failTitle" style="color: var(--fail);">GAME OVER</h1>
     <p id="failMsg"></p>
     <br />
     <button class="btn-primary widebtn" id="btnFailBack">난이도 다시 고르기</button>
@@ -648,8 +651,10 @@ const els = {
   file: $("fileInput"), frame: $("frame"), video: $("camVideo"),
   btnShoot: $("btnShoot"), btnCapture: $("btnCapture"), btnRetake: $("btnRetake"), btnSubmit: $("btnSubmit"),
   btnNext: $("btnNext"), btnRetry: $("btnRetry"),
-  failMsg: $("failMsg"), btnFailBack: $("btnFailBack"),
-  btnStart: $("btnStart"), tabBasic: $("tabBasic"), tabCat: $("tabCat"),
+  failMsg: $("failMsg"), failTitle: $("failTitle"), btnFailBack: $("btnFailBack"),
+  btnStart: $("btnStart"), tabBasic: $("tabBasic"), tabCat: $("tabCat"), tabTime: $("tabTime"),
+  timeSel: $("timeSel"), time5: $("time5"), time10: $("time10"),
+  bestLine: $("bestLine"), taTime: $("taTime"), taCleared: $("taCleared"),
   btnCatOffice: $("btnCatOffice"), btnCatSchool: $("btnCatSchool"), btnCatHome: $("btnCatHome"),
   btnCatCafe: $("btnCatCafe"), btnCatStreet: $("btnCatStreet"),
   catDiffTitle: $("catDiffTitle"), btnCatEasy: $("btnCatEasy"), btnCatHard: $("btnCatHard"),
@@ -688,7 +693,7 @@ function goBack() {
     render("idle");
     return;
   }
-  if (currentScreen === "game") stopCamera();
+  if (currentScreen === "game") { stopCamera(); stopTaTimer(); }
   if (currentScreen === "fin" || currentScreen === "fail") {
     while (navStack.length && navStack[navStack.length - 1] === "game") navStack.pop();
   }
@@ -704,6 +709,10 @@ function showButtons(...ids) {
 }
 
 function render(phase) {
+  // 타임어택: 두 번째 주제부터는 즉석에서 랜덤 생성 → 끝없이 이어짐
+  if (run.timeAttack) {
+    while (stage > themes.length) themes.push(taRandomTheme());
+  }
   if (stage > themes.length) {
     const newly = run.clearKey ? markCatCleared(run.clearKey) : false;
     renderFin(run.clearKey, newly);
@@ -715,6 +724,11 @@ function render(phase) {
   els.tier.textContent = run.tierPrefix + " · " + run.label;
   els.bestNum.textContent = best;
   els.theme.textContent = themes[stage - 1];
+
+  // 타임어택이면 타이머 표시 / 평소엔 오늘 최고기록 표시
+  els.bestLine.classList.toggle("hidden", !!run.timeAttack);
+  els.taTime.classList.toggle("hidden", !run.timeAttack);
+  if (run.timeAttack) updateTaTime();
 
   // 진행상황 배지 (카테고리 모드): 통과한 개수 / 전체, 전부 통과하면 CLEAR
   els.progress.classList.toggle("hidden", !run.showProgress);
@@ -901,6 +915,9 @@ els.btnSubmit.onclick = async () => {
 };
 
 function endGameOver() {
+  els.failTitle.style.color = "var(--fail)";
+  els.failTitle.textContent = "GAME OVER";
+  els.btnFailBack.textContent = "난이도 다시 고르기";
   els.failMsg.innerHTML =
     stage + "단계에서 실패했어요.<br />(" + run.label +
     " · " + run.failLimit + "번 실패로 종료)";
@@ -924,14 +941,29 @@ els.btnRetry.onclick = () => {
 };
 
 let selectedMode = "basic";
+let selectedMinutes = 5;
 function setMode(m) {
   selectedMode = m;
   els.tabBasic.classList.toggle("on", m === "basic");
   els.tabCat.classList.toggle("on", m === "cat");
+  els.tabTime.classList.toggle("on", m === "time");
+  els.timeSel.classList.toggle("hidden", m !== "time"); // 타임어택일 때만 5/10분 노출
+}
+function setMinutes(min) {
+  selectedMinutes = min;
+  els.time5.classList.toggle("on", min === 5);
+  els.time10.classList.toggle("on", min === 10);
 }
 els.tabBasic.onclick = () => setMode("basic");
 els.tabCat.onclick = () => setMode("cat");
-els.btnStart.onclick = () => { if (selectedMode === "cat") showScreen("cat"); else startBasic(); };
+els.tabTime.onclick = () => setMode("time");
+els.time5.onclick = () => setMinutes(5);
+els.time10.onclick = () => setMinutes(10);
+els.btnStart.onclick = () => {
+  if (selectedMode === "cat") showScreen("cat");
+  else if (selectedMode === "time") startTimeAttack(selectedMinutes);
+  else startBasic();
+};
 els.btnCollection.onclick = () => showScreen("collection");
 els.btnFinCollection.onclick = () => showScreen("collection");
 
@@ -951,6 +983,55 @@ function startBasic() {
     failLimit: null, failScope: null, showProgress: true,
     saveKey: "chalkak_basic", selectScreen: "title",
   }, buildBasicThemes());
+}
+
+// ─── 타임어택 모드 ───
+// 첫 주제: 날짜 시드(모든 기기 동일, 0시 리셋). 두 번째부터: 기기마다 랜덤
+function taDailyTheme() { return BASIC_POOL[dayNumber() % BASIC_POOL.length]; }
+function taRandomTheme() {
+  let t; const last = themes[themes.length - 1];
+  do { t = BASIC_POOL[Math.floor(Math.random() * BASIC_POOL.length)]; } while (t === last && BASIC_POOL.length > 1);
+  return t;
+}
+let taTimer = null, taRemain = 0;
+function taFmt(s) { return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+function startTimeAttack(min) {
+  startRun({
+    tierPrefix: "타임어택", label: min + "분",
+    failLimit: null, failScope: null, showProgress: false,
+    timeAttack: true, timeMin: min, saveKey: null, selectScreen: "title",
+  }, [taDailyTheme()]);
+  taRemain = min * 60;
+  updateTaTime();
+  if (taTimer) clearInterval(taTimer);
+  taTimer = setInterval(() => {
+    taRemain -= 1;
+    updateTaTime();
+    if (taRemain <= 0) endTimeAttack();
+  }, 1000);
+}
+function updateTaTime() {
+  if (!run || !run.timeAttack) return;
+  els.taTime.querySelector("b").textContent = taFmt(Math.max(0, taRemain));
+  els.taCleared.textContent = stage - 1;
+}
+function stopTaTimer() { if (taTimer) { clearInterval(taTimer); taTimer = null; } }
+function endTimeAttack() {
+  stopTaTimer();
+  stopCamera();
+  photoB64 = null;
+  const cleared = stage - 1;
+  const key = "chalkak_ta_" + run.timeMin;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem(key) || "0", 10) || 0; } catch (e) {}
+  const isBest = cleared > best;
+  if (isBest) { best = cleared; try { localStorage.setItem(key, String(best)); } catch (e) {} }
+  els.failTitle.style.color = "var(--flash)";
+  els.failTitle.textContent = "TIME UP";
+  els.failMsg.innerHTML = "⏱ " + run.timeMin + "분 종료 — <b>" + cleared + "개</b> 클리어" +
+    (isBest && cleared > 0 ? " (신기록!)" : "") + "<br />최고 기록 " + best + "개";
+  els.btnFailBack.textContent = "메인으로";
+  showScreen("fail");
 }
 
 function startCategory(cat, diff) {
