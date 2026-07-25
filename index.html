@@ -162,6 +162,7 @@
   #game .themecard { margin: 0; }
   #game .frame { flex: 1 1 auto; min-height: 0; margin: 0; aspect-ratio: auto; }
   #game .verdictbox { margin: 0; }
+  .shootnote { width: 100%; max-width: 420px; font-size: 10.5px; line-height: 1.4; color: var(--dim); opacity: 0.75; text-align: center; padding: 0 8px; }
   .gbtns { width: 100%; max-width: 420px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 96px; }
   .gbtns .gleft { grid-column: 1; justify-self: start; margin-left: 16px; }
   .gbtns .gcenter { grid-column: 2; justify-self: center; }
@@ -335,6 +336,7 @@
       <div class="seen hidden" id="verdictSeen"></div>
     </div>
     <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden" />
+    <p class="shootnote">사진은 AI 판정에만 쓰이고 저장되지 않아요 · 개인정보·선정적·유해한 사진은 삼가주세요</p>
     <div class="gbtns">
       <button class="btn-ghost pill gleft hidden" id="btnRetake">다시 찍기</button>
       <button class="btn-primary pill gleft hidden" id="btnRetry">다시 도전</button>
