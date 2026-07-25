@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>오늘의 찰칵</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
 <style>
@@ -72,6 +72,7 @@
     overflow: hidden; margin-bottom: 16px;
   }
   .frame img, .frame video { width: 100%; height: 100%; object-fit: cover; }
+  .frame video { transform-origin: center center; touch-action: none; } /* 핀치 줌 대상 */
   .frame .empty { color: var(--dim); font-size: 14px; text-align: center; line-height: 1.7; }
   .corner { position: absolute; width: 26px; height: 26px; border-color: var(--flash); border-style: solid; border-width: 0; }
   .corner.tl { top: 10px; left: 10px; border-top-width: 3px; border-left-width: 3px; }
@@ -869,12 +870,32 @@ function resizeImage(file, maxSide) {
 // ─── 카메라(웹캠) ───
 let camStream = null;
 
+// 라이브 영상에만 적용되는 디지털 줌 (페이지 전체가 아니라 카메라 부분만 확대)
+let camZoom = 1, pinchStartDist = 0, pinchStartZoom = 1;
+function applyCamZoom() { els.video.style.transform = "scale(" + camZoom + ")"; }
+function resetCamZoom() { camZoom = 1; applyCamZoom(); }
+function touchDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+els.frame.addEventListener("touchstart", (e) => {
+  if (gamePhase !== "camera" || e.touches.length !== 2) return;
+  pinchStartDist = touchDist(e.touches);
+  pinchStartZoom = camZoom;
+  e.preventDefault();
+}, { passive: false });
+els.frame.addEventListener("touchmove", (e) => {
+  if (gamePhase !== "camera" || e.touches.length !== 2 || !pinchStartDist) return;
+  camZoom = Math.min(4, Math.max(1, pinchStartZoom * (touchDist(e.touches) / pinchStartDist)));
+  applyCamZoom();
+  e.preventDefault();
+}, { passive: false });
+els.frame.addEventListener("touchend", (e) => { if (e.touches.length < 2) pinchStartDist = 0; });
+
 function stopCamera() {
   if (camStream) {
     camStream.getTracks().forEach((t) => t.stop());
     camStream = null;
   }
   els.video.srcObject = null;
+  resetCamZoom();
 }
 
 // 웹캠 있으면 실시간 캡처, 없으면(권한 거부·미지원 등) 파일 선택으로 폴백
@@ -888,6 +909,7 @@ async function startShoot() {
       video: { facingMode: "environment" }, audio: false,
     });
     els.video.srcObject = camStream;
+    resetCamZoom();
     render("camera");
   } catch (err) {
     els.file.click();
@@ -897,12 +919,16 @@ async function startShoot() {
 function captureFromVideo() {
   const vw = els.video.videoWidth, vh = els.video.videoHeight;
   if (!vw || !vh) return null;
+  // 화면에서 확대한 만큼 가운데를 잘라 사진에도 줌이 반영되게
+  const z = camZoom || 1;
+  const sw = vw / z, sh = vh / z;
+  const sx = (vw - sw) / 2, sy = (vh - sh) / 2;
   const maxSide = 900;
-  const scale = Math.min(1, maxSide / Math.max(vw, vh));
+  const scale = Math.min(1, maxSide / Math.max(sw, sh));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(vw * scale);
-  canvas.height = Math.round(vh * scale);
-  canvas.getContext("2d").drawImage(els.video, 0, 0, canvas.width, canvas.height);
+  canvas.width = Math.round(sw * scale);
+  canvas.height = Math.round(sh * scale);
+  canvas.getContext("2d").drawImage(els.video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/jpeg", 0.85).split(",")[1];
 }
 
