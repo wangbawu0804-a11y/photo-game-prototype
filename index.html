@@ -64,6 +64,7 @@
   }
   .progress.clear { color: var(--pass); }
   .themecard h1 { font-family: 'Black Han Sans', sans-serif; font-size: 30px; line-height: 1.2; }
+  .themecard h1.small { font-size: 21px; }
   .frame {
     position: relative; width: 100%; max-width: 420px; aspect-ratio: 4 / 3;
     background: #0D0F14; border-radius: 6px;
@@ -771,6 +772,7 @@ function render(phase) {
   els.tier.textContent = run.tierPrefix + " · " + run.label;
   els.bestNum.textContent = best;
   els.eyebrow.textContent = "지금 찾을 것";
+  els.theme.classList.remove("small");
   els.theme.textContent = themes[stage - 1];
 
   // 타임어택·메이킹이면 타이머 표시 / 평소엔 오늘 최고기록 표시
@@ -1116,11 +1118,13 @@ function renderMaking(phase) {
   els.stampFail.classList.add("hidden");
   els.judging.classList.add("hidden");
   els.verdictBox.classList.add("hidden");
+  // 안내 문구는 글자가 커서 두 줄로 넘어가므로 확인 단계(대주제) 빼고 작은 글씨로
+  els.theme.classList.toggle("small", phase !== "confirm");
 
   if (phase === "idle" || phase === "scan") {
     els.eyebrow.textContent = "환경 스캔";
     els.theme.textContent = "주변을 찍어 문제를 만들어요";
-    els.empty.innerHTML = "주변 환경이 잘 나오게<br />사진을 찍어 주세요";
+    els.empty.innerHTML = "주변 환경이나 사물이 잘 나오게<br />사진을 찍어주세요";
     els.img.classList.add("hidden");
     els.video.classList.add("hidden");
     els.empty.classList.remove("hidden");
