@@ -1171,13 +1171,37 @@ function topUpThemes(list, n) {
   return out;
 }
 
+// 최근에 낸 문제 기록 (같은 대주제로 또 찍을 때 되도록 피하려고 서버에 넘김)
+const MAKE_HISTORY_KEY = "chalkak_making_seen";
+const MAKE_HISTORY_CAP = 60;
+function loadMakeHistory() {
+  try { const a = JSON.parse(localStorage.getItem(MAKE_HISTORY_KEY) || "[]"); return Array.isArray(a) ? a : []; }
+  catch (e) { return []; }
+}
+function recordMakeHistory(list) {
+  const merged = loadMakeHistory().concat(list);
+  const seen = new Set(), dedup = [];
+  for (let i = merged.length - 1; i >= 0; i--) {
+    if (!seen.has(merged[i])) { seen.add(merged[i]); dedup.unshift(merged[i]); }
+  }
+  try { localStorage.setItem(MAKE_HISTORY_KEY, JSON.stringify(dedup.slice(-MAKE_HISTORY_CAP))); } catch (e) {}
+}
+function shuffleArr(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 async function genThemes() {
   render("gen");
   try {
     const r = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: photoB64 }),
+      body: JSON.stringify({ image: photoB64, exclude: loadMakeHistory() }),
     });
     const data = await r.json();
     if (!r.ok || data.error) throw new Error(data.error || "HTTP " + r.status);
@@ -1188,6 +1212,8 @@ async function genThemes() {
     makeTopic = "";
     themes = topUpThemes([], MAKING_COUNT);
   }
+  themes = shuffleArr(themes);   // 순서 랜덤 (재사용된 문제도 순서가 달라지게)
+  recordMakeHistory(themes);     // 이번에 낸 문제 기록 → 다음 생성 때 제외 우선
   render("confirm");
 }
 
