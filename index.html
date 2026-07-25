@@ -46,8 +46,6 @@
   .genmsg { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--paper); font-weight: 700; }
   .genmsg .spin { width: 34px; height: 34px; border: 3px solid rgba(255,211,56,0.3); border-top-color: var(--flash); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .themelist { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-content: center; padding: 16px; }
-  .themelist span { font-size: 15px; font-weight: 700; color: var(--ink); background: var(--flash); border-radius: 14px; padding: 6px 13px; }
   /* 포기 확인 모달 */
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
   .modal-box { background: #1E222C; border: 1px solid #2A2F3B; border-radius: 18px; padding: 26px 22px; width: 82%; max-width: 320px; text-align: center; }
@@ -1092,11 +1090,11 @@ function endTimeAttack() {
 // ─── 메이킹 모드 ───
 // 주변을 찍어 즉석에서 문제 10개 생성 → 확인 → 완주 시간 기록
 const MAKING_COUNT = 10;
-let makeScanning = false, makeSeen = "", makeTimer = null, makeStartMs = 0;
+let makeScanning = false, makeTopic = "", makeTimer = null, makeStartMs = 0;
 
 function startMaking() {
   makeScanning = true;
-  makeSeen = "";
+  makeTopic = "";
   makeStartMs = 0;
   stopMakeTimer();
   startRun({
@@ -1150,11 +1148,11 @@ function renderMaking(phase) {
     els.empty.classList.remove("hidden");
     showButtons();
   } else if (phase === "confirm") {
-    els.eyebrow.textContent = "이 주제들로 진행할까요?";
-    els.theme.textContent = makeSeen || "주변 환경";
+    els.eyebrow.textContent = "이 주제로 진행할까요?";
+    els.theme.textContent = makeTopic || "주변 환경";
     els.img.classList.add("hidden");
     els.video.classList.add("hidden");
-    els.empty.innerHTML = '<div class="themelist">' + themes.map((t) => "<span>" + t + "</span>").join("") + "</div>";
+    els.empty.innerHTML = '<div class="genmsg">‘' + (makeTopic || "이 주제") + '’ 관련<br />문제 ' + MAKING_COUNT + '개를 준비했어요<br /><span style="font-size:13px;color:var(--dim);font-weight:400">하나씩 도전해 보세요</span></div>';
     els.empty.classList.remove("hidden");
     showButtons("btnMakeNo", "btnMakeYes");
   }
@@ -1183,11 +1181,11 @@ async function genThemes() {
     });
     const data = await r.json();
     if (!r.ok || data.error) throw new Error(data.error || "HTTP " + r.status);
-    makeSeen = data.seen || "";
+    makeTopic = data.topic || "";
     themes = topUpThemes(Array.isArray(data.themes) ? data.themes : [], MAKING_COUNT);
   } catch (err) {
     // 생성 실패 → 기존 300풀에서 10개로 진행 (게임이 멈추지 않게)
-    makeSeen = "";
+    makeTopic = "";
     themes = topUpThemes([], MAKING_COUNT);
   }
   render("confirm");
@@ -1239,6 +1237,7 @@ els.btnMakeGen.onclick = genThemes;
 els.btnMakeNo.onclick = () => { photoB64 = null; render("scan"); };
 els.btnMakeYes.onclick = () => {
   makeScanning = false;
+  run.label = makeTopic || "즉석 문제"; // 진행 화면 상단에 대주제 표시
   stage = 1;
   photoB64 = null;
   makeStartMs = Date.now();
